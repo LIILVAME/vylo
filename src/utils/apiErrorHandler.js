@@ -1,6 +1,7 @@
 import { useToastStore } from '@/stores/toastStore'
 import { useDiagnosticStore } from '@/stores/diagnosticStore'
 import { isRetryableError } from './retry'
+import { canAttempt, recordSuccess, recordFailure, getState } from './circuitBreaker'
 
 /**
  * Gestionnaire d'erreur centralisé pour les appels API Supabase
@@ -14,7 +15,7 @@ export function handleApiError(error, context = '') {
 
   // Détermine le message d'erreur
   let message = 'Erreur API inconnue'
-  
+
   if (error?.message) {
     message = error.message
   } else if (typeof error === 'string') {
@@ -29,17 +30,18 @@ export function handleApiError(error, context = '') {
     'Failed to fetch': 'Erreur réseau. Vérifiez votre connexion internet.',
     'JWT expired': 'Votre session a expiré. Veuillez vous reconnecter.',
     'Invalid API key': 'Erreur de configuration. Contactez le support.',
-    'new row violates row-level security policy': 'Action non autorisée. Vous n\'avez pas les droits nécessaires.',
+    'new row violates row-level security policy':
+      "Action non autorisée. Vous n'avez pas les droits nécessaires.",
     'duplicate key value violates unique constraint': 'Cette valeur existe déjà.',
     'foreign key constraint fails': 'Impossible de supprimer : des données sont liées.',
     'null value in column': 'Des champs obligatoires sont manquants.'
   }
 
   // Remplace par un message plus convivial si disponible
-  const friendlyMessage = Object.keys(userFriendlyMessages).find(key => 
+  const friendlyMessage = Object.keys(userFriendlyMessages).find(key =>
     message.toLowerCase().includes(key.toLowerCase())
   )
-  
+
   if (friendlyMessage) {
     message = userFriendlyMessages[friendlyMessage]
   }
@@ -50,7 +52,7 @@ export function handleApiError(error, context = '') {
     diagnosticStore.recordError(error, { context, message })
   } catch (diagError) {
     // Si le diagnosticStore n'est pas disponible, on continue
-    console.warn('Impossible d\'enregistrer dans diagnosticStore:', diagError)
+    console.warn("Impossible d'enregistrer dans diagnosticStore:", diagError)
   }
 
   // Affiche un toast d'erreur (si le toastStore est disponible)
@@ -61,7 +63,7 @@ export function handleApiError(error, context = '') {
     }
   } catch (toastError) {
     // Si le toastStore n'est pas disponible, on continue sans toast
-    console.warn('Impossible d\'afficher un toast:', toastError)
+    console.warn("Impossible d'afficher un toast:", toastError)
   }
 
   // Capture les erreurs critiques dans Sentry (si configuré)
@@ -95,14 +97,27 @@ export async function withErrorHandling(apiCall, context = '', options = {}) {
   const { useConnectionStore } = await import('@/stores/connectionStore')
   const { useToastStore } = await import('@/stores/toastStore')
   const diagnosticStore = useDiagnosticStore()
-  
+
   const connectionStore = useConnectionStore()
   const toastStore = useToastStore()
 
   // Démarre la mesure de latence
   const startTime = performance.now()
   const endpoint = context || 'unknown'
-  
+
+  // Vérifie le circuit breaker avant d'essayer
+  const circuitCheck = canAttempt(endpoint)
+  if (!circuitCheck.allowed) {
+    const circuitState = getState(endpoint)
+    return {
+      success: false,
+      error: new Error(circuitCheck.reason || 'Circuit breaker ouvert'),
+      message: `Service temporairement indisponible. ${circuitCheck.reason || 'Réessayez plus tard.'}`,
+      circuitBreakerOpen: true,
+      nextAttemptTime: circuitState.nextAttemptTime
+    }
+  }
+
   // Timeout par défaut : 10 secondes pour éviter les blocages
   const timeout = options.timeout || 10000
 
@@ -111,11 +126,14 @@ export async function withErrorHandling(apiCall, context = '', options = {}) {
     try {
       // Ajoute un timeout pour éviter les blocages prolongés
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`Timeout: l'opération a pris plus de ${timeout}ms`)), timeout)
+        setTimeout(
+          () => reject(new Error(`Timeout: l'opération a pris plus de ${timeout}ms`)),
+          timeout
+        )
       })
-      
+
       const result = await Promise.race([apiCall(), timeoutPromise])
-      
+
       if (result.error) {
         // Vérifie si l'erreur est réessayable
         if (isRetryableError(result.error)) {
@@ -129,7 +147,7 @@ export async function withErrorHandling(apiCall, context = '', options = {}) {
         // Erreur non réessayable, retourne directement
         return handleApiError(result.error, context)
       }
-      
+
       // Succès
       return {
         success: true,
@@ -173,7 +191,7 @@ export async function withErrorHandling(apiCall, context = '', options = {}) {
     maxRetries: 2, // Réduit à 2 tentatives (total 3 avec la première)
     initialDelay: 300, // Réduit à 300ms
     maxDelay: 1200, // Réduit à 1.2s max
-    shouldRetry: (error) => {
+    shouldRetry: error => {
       // Réessaye seulement pour les erreurs réseau
       if (isRetryableError(error)) {
         showRetryToast()
@@ -194,22 +212,28 @@ export async function withErrorHandling(apiCall, context = '', options = {}) {
   // Calcule et enregistre la latence
   const duration = performance.now() - startTime
   diagnosticStore.trackLatency(endpoint, duration)
-  
+
   // Avertit si la latence est élevée (plus de 3 secondes)
   if (duration > 3000) {
     console.warn(`[API] Latence élevée pour ${endpoint}: ${Math.round(duration)}ms`)
-    diagnosticStore.logEvent('warning', `Latence élevée: ${endpoint} (${Math.round(duration)}ms)`, { endpoint, duration })
+    diagnosticStore.logEvent('warning', `Latence élevée: ${endpoint} (${Math.round(duration)}ms)`, {
+      endpoint,
+      duration
+    })
   }
 
   // Si succès, met à jour la connexion et enregistre le succès
   if (retryResult.success) {
     connectionStore.setOnline(true)
     diagnosticStore.recordSuccess(endpoint)
+    recordSuccess(endpoint) // Enregistre le succès dans le circuit breaker
     if (retryToastShown && toastStore) {
       // Le toast "reconnexion" sera automatiquement remplacé par le toast de succès de l'API
     }
+  } else {
+    // Enregistre l'échec dans le circuit breaker
+    recordFailure(endpoint, retryResult.error || new Error(retryResult.message || 'Unknown error'))
   }
 
   return retryResult
 }
-

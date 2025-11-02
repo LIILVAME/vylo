@@ -81,11 +81,13 @@
 - Timeout par défaut : **10 secondes**
 - Évite les blocages prolongés
 
-### ❌ Circuit breaker (manquant)
+### ✅ Circuit breaker (implémenté)
 
-- **À implémenter** : Détecter les erreurs répétées
-- Activer mode dégradé automatiquement
-- Documenté dans `docs/refactor/API_LAYER_AUDIT.md`
+- ✅ Créé `src/utils/circuitBreaker.js`
+- ✅ Intégré dans `withErrorHandling()`
+- ✅ 3 états : CLOSED, OPEN, HALF_OPEN
+- ✅ Configuration : 5 erreurs = circuit ouvert, 60s avant HALF_OPEN
+- ✅ Auto-fermeture après succès en HALF_OPEN
 
 ### ✅ Gestion d'erreur centralisée
 
