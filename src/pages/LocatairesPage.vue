@@ -153,10 +153,17 @@ onMounted(async () => {
         })
       }
 
-      // Si toujours pas de données après attente, force un nouveau fetch
-      if (propertiesStore.properties.length === 0 && !propertiesStore.loading) {
+      // Si toujours pas de données après attente (que loading soit true ou false), force un nouveau fetch
+      if (propertiesStore.properties.length === 0) {
+        if (propertiesStore.loading) {
+          console.warn(
+            '⚠️ Loading toujours bloqué après 3s, on force loading = false et nouveau fetch'
+          )
+          // Force loading à false pour débloquer
+          propertiesStore.loading = false
+        }
         console.log('🔄 Force nouveau fetch des propriétés')
-        await propertiesStore.fetchProperties(true) // force = true
+        await propertiesStore.fetchProperties(true) // force = true pour bypasser le check loading
       }
     }
 
