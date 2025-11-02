@@ -32,6 +32,8 @@ export const usePropertiesStore = defineStore(
       const authStore = useAuthStore()
       if (!authStore.user) {
         console.warn('fetchProperties: User not authenticated, skipping fetch')
+        // S'assure que loading est false si pas d'utilisateur
+        loading.value = false
         return
       }
 
@@ -43,56 +45,74 @@ export const usePropertiesStore = defineStore(
       // Cache de 5 secondes pour éviter les requêtes trop fréquentes
       const now = Date.now()
       if (!force && now - lastFetchTime < FETCH_CACHE_MS && properties.value.length > 0) {
+        // S'assure que loading est false si on utilise le cache
+        loading.value = false
         return
       }
 
       loading.value = true
       error.value = null
 
-      const result = await propertiesApi.getProperties(authStore.user.id)
+      try {
+        const result = await propertiesApi.getProperties(authStore.user.id)
 
-      if (result.success && result.data) {
-        lastFetchTime = Date.now()
+        if (result.success && result.data) {
+          lastFetchTime = Date.now()
 
-        // Transforme les données Supabase pour correspondre au format attendu
-        properties.value = result.data.map(prop => ({
-          id: prop.id,
-          name: prop.name,
-          address: prop.address || '',
-          city: prop.city,
-          status: prop.status,
-          rent: Number(prop.rent),
-          tenant:
-            prop.tenants && prop.tenants.length > 0
-              ? {
-                  id: prop.tenants[0].id,
-                  name: prop.tenants[0].name,
-                  entryDate: prop.tenants[0].entry_date,
-                  exitDate: prop.tenants[0].exit_date || null,
-                  rent: Number(prop.tenants[0].rent),
-                  status: prop.tenants[0].status || 'on_time'
-                }
-              : null,
-          image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400' // Image par défaut
-        }))
-      } else {
-        error.value = result.message || 'Erreur lors de la récupération des biens'
+          // Transforme les données Supabase pour correspondre au format attendu
+          properties.value = result.data.map(prop => ({
+            id: prop.id,
+            name: prop.name,
+            address: prop.address || '',
+            city: prop.city,
+            status: prop.status,
+            rent: Number(prop.rent),
+            tenant:
+              prop.tenants && prop.tenants.length > 0
+                ? {
+                    id: prop.tenants[0].id,
+                    name: prop.tenants[0].name,
+                    entryDate: prop.tenants[0].entry_date,
+                    exitDate: prop.tenants[0].exit_date || null,
+                    rent: Number(prop.tenants[0].rent),
+                    status: prop.tenants[0].status || 'on_time'
+                  }
+                : null,
+            image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400' // Image par défaut
+          }))
+        } else {
+          error.value = result.message || 'Erreur lors de la récupération des biens'
 
-        // Si erreur réseau et qu'on a des données en cache, les utiliser
-        const { useConnectionStore } = await import('@/stores/connectionStore')
-        const { useToastStore } = await import('@/stores/toastStore')
-        const connectionStore = useConnectionStore()
-        const toastStore = useToastStore()
+          // Si erreur réseau et qu'on a des données en cache, les utiliser
+          const { useConnectionStore } = await import('@/stores/connectionStore')
+          const { useToastStore } = await import('@/stores/toastStore')
+          const connectionStore = useConnectionStore()
+          const toastStore = useToastStore()
 
-        if (!connectionStore.isOnline && properties.value.length > 0) {
-          // Affiche un toast informatif mais continue avec les données du cache
-          if (toastStore) {
-            toastStore.info('⚠️ Données locales affichées (connexion perdue)')
+          if (!connectionStore.isOnline && properties.value.length > 0) {
+            // Affiche un toast informatif mais continue avec les données du cache
+            if (toastStore) {
+              toastStore.info('⚠️ Données locales affichées (connexion perdue)')
+            }
           }
         }
-      }
+      } catch (err) {
+        // Gestion d'erreur pour éviter que loading reste bloqué
+        console.error('Erreur lors du chargement des propriétés:', err)
+        error.value = err.message || 'Erreur lors de la récupération des biens'
 
-      loading.value = false
+        // Si erreur et qu'on a des données en cache, on continue avec le cache
+        if (properties.value.length > 0) {
+          const { useToastStore } = await import('@/stores/toastStore')
+          const toastStore = useToastStore()
+          if (toastStore) {
+            toastStore.warning('⚠️ Erreur de chargement, données en cache affichées')
+          }
+        }
+      } finally {
+        // Garantit que loading est toujours remis à false, même en cas d'erreur
+        loading.value = false
+      }
     }
 
     /**

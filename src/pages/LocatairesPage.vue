@@ -34,12 +34,40 @@
           </button>
         </div>
 
-        <!-- État de chargement -->
-        <div v-if="propertiesStore.loading && tenants.length === 0" class="text-center py-16">
+        <!-- État de chargement initial -->
+        <div
+          v-if="propertiesStore.loading && propertiesStore.properties.length === 0"
+          class="text-center py-16"
+        >
           <div
             class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"
           ></div>
           <p class="text-gray-500">{{ $t('tenants.loading') }}</p>
+        </div>
+
+        <!-- Erreur -->
+        <div
+          v-else-if="propertiesStore.error && tenants.length === 0"
+          class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
+        >
+          <div class="flex items-center">
+            <svg
+              class="w-5 h-5 text-red-600 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p class="text-red-700 font-medium">
+              {{ $t('common.errorWithColon') }} {{ propertiesStore.error }}
+            </p>
+          </div>
         </div>
 
         <!-- Loader inline si données déjà chargées -->
