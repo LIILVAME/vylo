@@ -1,102 +1,42 @@
 # Changelog
 
-Tous les changements notables de ce projet seront documentés dans ce fichier.
+All notable changes to Doogoo will be documented in this file.
 
-Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
-
-## [0.1.0] - 2024-12-04
-
-### 🎉 Version initiale
-
-#### Ajouté
-- **Landing Page** complète avec sections hero, fonctionnalités, témoignages et footer
-- **Dashboard** avec vue d'ensemble des statistiques (température, humidité, qualité de l'air, consommation)
-- **Liste des biens immobiliers** avec cartes détaillées et statuts (occupé/libre)
-- **Section paiements à venir** avec échéances et statuts
-- **Aperçu sécurité** avec statut des caméras
-- **Sidebar de navigation** avec menu complet (Dashboard, Biens, Alertes, Paiements, Paramètres)
-- **Composants réutilisables** : `Sidebar`, `StatCard`, `PropertyCard`
-- **Données mockées** complètes pour la démonstration
-- **Design responsive** (mobile, tablette, desktop)
-- **Configuration Tailwind CSS** avec thème personnalisé (couleurs primaires vertes)
-- **Vue Router** avec navigation entre landing et dashboard
-- **README complet** avec documentation, roadmap et guidelines de contribution
-- **Structure CI/CD** avec GitHub Actions pour déploiement automatique
-
-#### Documentation
-- README professionnel avec badges, table des matières et instructions complètes
-- CHANGELOG pour suivre les versions
-- CONTRIBUTING.md avec guidelines pour contributeurs
-- CODE_OF_CONDUCT.md pour maintenir un environnement respectueux
-- Documentation technique dans `docs/`
+The format is based on [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [0.2.0] - Planifié
+## [Unreleased]
 
-### Prévu
-- [ ] Menu hamburger pour navigation mobile
-- [ ] Page détail par bien immobilier
-- [ ] Graphiques de tendances avec Chart.js ou ApexCharts
-- [ ] Système de notifications toast pour les alertes
-- [ ] Badge sur l'icône Alertes dans la sidebar
-- [ ] Filtres et recherche des biens
-- [ ] Tri par température, consommation, date
-- [ ] Skeleton loaders pour améliorer le feedback visuel
-- [ ] Tooltips sur les cartes de statistiques
+### Added
 
----
+- Framework de versioning et release automatique
+- Workflow CI/CD GitHub Actions complet
+- Documentation complète du processus de release
 
-## [0.3.0] - Planifié
+### Changed
 
-### Prévu
-- [ ] Authentification avec JWT ou OAuth 2.0
-- [ ] API réelle avec backend (remplacement de mockData.js)
-- [ ] WebSockets pour mises à jour en temps réel
-- [ ] Gestion des sessions utilisateur
-- [ ] Refresh tokens
-- [ ] Protection CSRF
-- [ ] Rate limiting sur les API
+- Amélioration de la gestion des états de chargement (LocatairesPage)
+- Correction des conditions d'affichage pour éviter les loaders bloqués
+
+### Fixed
+
+- Correction bug chargement infini sur page Locataires
+- Amélioration gestion loading dans fetchProperties
+- Nettoyage des logs de debug en production
 
 ---
 
-## [0.4.0] - Planifié
+## [0.2.2] - 2025-11-02
 
-### Prévu
-- [ ] Export PDF des rapports
-- [ ] Notifications email/SMS
-- [ ] Mode sombre (dark mode)
-- [ ] Personnalisation des seuils d'alertes
-- [ ] Widgets configurables sur le dashboard
-- [ ] Timeline des événements et alertes
-- [ ] Carte géographique des biens (Leaflet)
-- [ ] Graphiques de consommation sur 30 jours par bien
-- [ ] Upload de photos et documents par bien
+### Changed
 
----
+- Migration complète vers LinguiJS pour i18n
+- Refactorisation architecture (API layer, Circuit Breaker)
+- Améliorations SEO et analytics
 
-## [0.5.0] - Planifié
+### Fixed
 
-### Prévu
-- [ ] Multi-langues (i18n)
-- [ ] Accessibilité améliorée (WCAG AA)
-- [ ] Tests unitaires (Vitest)
-- [ ] Tests E2E (Playwright ou Cypress)
-- [ ] Performance optimisations (lazy loading, code splitting)
-- [ ] PWA (Progressive Web App)
-- [ ] Application mobile (React Native ou Capacitor)
-
----
-
-## Types de changements
-
-- `Ajouté` pour les nouvelles fonctionnalités
-- `Modifié` pour les changements dans les fonctionnalités existantes
-- `Déprécié` pour les fonctionnalités qui seront bientôt supprimées
-- `Supprimé` pour les fonctionnalités supprimées
-- `Corrigé` pour les corrections de bugs
-- `Sécurité` pour les vulnérabilités
-
-[0.1.0]: https://github.com/votre-username/vylo/releases/tag/v0.1.0
-
+- Corrections multiples de bugs de chargement
+- Amélioration gestion erreurs API

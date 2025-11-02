@@ -25,7 +25,12 @@
     "pwa:icons": "node scripts/generate-pwa-icons.js",
     "pwa:validate": "./scripts/validate-pwa.sh",
     "email:audit": "node scripts/audit-email-templates.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:patch": "standard-version --release-as patch",
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@lingui/cli": "^5.5.2",
@@ -67,6 +72,7 @@
     "postcss": "^8.4.38",
     "prettier": "^3.6.2",
     "sharp": "^0.34.4",
+    "standard-version": "^9.5.0",
     "supabase": "^2.54.11",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.9.3",
