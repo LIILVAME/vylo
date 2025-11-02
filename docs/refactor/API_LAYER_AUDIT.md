@@ -56,14 +56,14 @@
 
 ## 📋 Résumé
 
-| Store             | Statut | API Layer                   | Action                                  |
-| ----------------- | ------ | --------------------------- | --------------------------------------- |
-| `propertiesStore` | ✅     | `propertiesApi`             | Aucune                                  |
-| `paymentsStore`   | ✅     | `paymentsApi`               | Aucune                                  |
-| `authStore`       | ✅     | `supabase.auth` (exception) | Aucune                                  |
-| `analyticsStore`  | ✅     | `analyticsApi`              | ✅ **TERMINÉ**                          |
-| `reportsStore`    | ⚠️     | Direct Supabase             | Créer `reportsApi` (requêtes complexes) |
-| `alertsStore`     | ⚠️     | Direct Supabase             | Créer `alertsApi` (requêtes complexes)  |
+| Store             | Statut | API Layer                   | Action         |
+| ----------------- | ------ | --------------------------- | -------------- |
+| `propertiesStore` | ✅     | `propertiesApi`             | Aucune         |
+| `paymentsStore`   | ✅     | `paymentsApi`               | Aucune         |
+| `authStore`       | ✅     | `supabase.auth` (exception) | Aucune         |
+| `analyticsStore`  | ✅     | `analyticsApi`              | ✅ **TERMINÉ** |
+| `reportsStore`    | ✅     | `reportsApi`                | ✅ **TERMINÉ** |
+| `alertsStore`     | ✅     | `alertsApi`                 | ✅ **TERMINÉ** |
 
 ---
 

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from './authStore'
 import { formatCurrency, formatDate } from '@/utils/formatters'
+import { reportsApi } from '@/api/reports'
 
 /**
  * Store Pinia pour gérer les rapports et exports
@@ -13,11 +13,11 @@ export const useReportsStore = defineStore('reports', () => {
   const recentReports = ref([])
 
   /**
-   * Génère les données pour un rapport mensuel
+   * Génère les données pour un rapport mensuel via l'API layer
    * @param {string} month - Format "YYYY-MM" ou "janv. 2025"
    * @returns {Promise<Object>} Données du rapport
    */
-  const generateMonthlyReport = async (month) => {
+  const generateMonthlyReport = async month => {
     loading.value = true
     error.value = null
 
@@ -27,80 +27,17 @@ export const useReportsStore = defineStore('reports', () => {
         throw new Error('User not authenticated')
       }
 
-      // Parse le mois (format "janv. 2025" ou "YYYY-MM")
-      let startDate, endDate
-      if (month.includes('-')) {
-        // Format "YYYY-MM"
-        const [year, monthNum] = month.split('-')
-        startDate = new Date(year, parseInt(monthNum) - 1, 1)
-        endDate = new Date(year, parseInt(monthNum), 0, 23, 59, 59)
-      } else {
-        // Format "janv. 2025"
-        const [monthName, year] = month.split(' ')
-        const monthMap = {
-          'janv.': 0, 'févr.': 1, 'mars': 2, 'avr.': 3, 'mai': 4, 'juin': 5,
-          'juil.': 6, 'août': 7, 'sept.': 8, 'oct.': 9, 'nov.': 10, 'déc.': 11
-        }
-        startDate = new Date(year, monthMap[monthName] || 0, 1)
-        endDate = new Date(year, (monthMap[monthName] || 0) + 1, 0, 23, 59, 59)
-      }
+      // Utilise l'API layer pour bénéficier de retry, timeout et gestion d'erreur centralisée
+      const result = await reportsApi.generateMonthlyReport(authStore.user.id, month)
 
-      // Récupère les paiements du mois
-      const { data: payments, error: paymentsError } = await supabase
-        .from('payments_view')
-        .select(`
-          *,
-          properties (id, name, city),
-          tenants (id, name)
-        `)
-        .eq('user_id', authStore.user.id)
-        .gte('due_date', startDate.toISOString().split('T')[0])
-        .lte('due_date', endDate.toISOString().split('T')[0])
-        .order('due_date', { ascending: false })
-
-      if (paymentsError) throw paymentsError
-
-      // Récupère les propriétés
-      const { data: properties, error: propertiesError } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('user_id', authStore.user.id)
-
-      if (propertiesError) throw propertiesError
-
-      // Calcule les statistiques
-      const paidPayments = payments?.filter(p => p.status === 'paid') || []
-      const latePayments = payments?.filter(p => p.status === 'late') || []
-      const totalRevenue = paidPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
-      const occupiedProperties = properties?.filter(p => p.status === 'occupied').length || 0
-      const occupancyRate = properties?.length > 0 
-        ? Math.round((occupiedProperties / properties.length) * 100) 
-        : 0
-
-      // Format les paiements pour le rapport
-      const formattedPayments = (payments || []).map(p => ({
-        property: p.properties?.name || 'N/A',
-        tenant: p.tenants?.name || 'N/A',
-        amount: Number(p.amount),
-        dueDate: p.due_date,
-        status: p.status
-      }))
-
-      const reportData = {
-        month,
-        properties: properties || [],
-        payments: formattedPayments,
-        statistics: {
-          totalRevenue,
-          occupancyRate,
-          paidPayments: paidPayments.length,
-          latePayments: latePayments.length,
-          totalPayments: payments?.length || 0
-        }
+      if (!result.success) {
+        error.value = result.message
+        loading.value = false
+        throw new Error(result.message)
       }
 
       loading.value = false
-      return reportData
+      return result.data
     } catch (err) {
       error.value = err.message
       loading.value = false
@@ -110,12 +47,25 @@ export const useReportsStore = defineStore('reports', () => {
   }
 
   /**
-   * Récupère les rapports récents
+   * Récupère les rapports récents via l'API layer
    */
   const fetchRecentReports = async () => {
-    // Pour l'instant, retourne une liste vide
-    // TODO v0.3.0+ : Stocker les rapports générés dans Supabase
-    recentReports.value = []
+    try {
+      const authStore = useAuthStore()
+      if (!authStore.user) {
+        return
+      }
+
+      // Utilise l'API layer (pour l'instant retourne liste vide, sera implémenté en v0.3.0+)
+      const result = await reportsApi.getRecentReports(authStore.user.id)
+
+      if (result.success) {
+        recentReports.value = result.data || []
+      }
+    } catch (err) {
+      console.error('Error fetching recent reports:', err)
+      recentReports.value = []
+    }
   }
 
   return {
@@ -126,4 +76,3 @@ export const useReportsStore = defineStore('reports', () => {
     fetchRecentReports
   }
 })
-
