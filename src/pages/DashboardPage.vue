@@ -2,9 +2,14 @@
   <div class="flex min-h-screen bg-gray-50">
     <!-- Sidebar -->
     <Sidebar />
-    
+
     <!-- Main Content -->
-    <main ref="mainElement" class="flex-1 overflow-y-auto" role="main" aria-label="Tableau de bord principal">
+    <main
+      ref="mainElement"
+      class="flex-1 overflow-y-auto"
+      role="main"
+      aria-label="Tableau de bord principal"
+    >
       <PullToRefresh
         :is-pulling="isPulling"
         :pull-distance="pullDistance"
@@ -16,22 +21,41 @@
         <DashboardHeader :stats="globalStats" />
 
         <!-- État de chargement initial avec skeletons -->
-        <div v-if="(propertiesStore.loading || paymentsStore.loading) && propertiesStore.properties.length === 0" class="space-y-4 sm:space-y-6">
+        <div
+          v-if="
+            (propertiesStore.loading || paymentsStore.loading) &&
+            propertiesStore.properties.length === 0
+          "
+          class="space-y-4 sm:space-y-6"
+        >
           <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
             <SkeletonCard v-for="n in 3" :key="n" />
           </div>
         </div>
-        
+
         <!-- Loader inline si données déjà chargées -->
         <div v-else-if="propertiesStore.loading || paymentsStore.loading" class="text-center py-8">
           <InlineLoader />
         </div>
 
         <!-- Erreur -->
-        <div v-else-if="propertiesStore.error || paymentsStore.error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div
+          v-else-if="propertiesStore.error || paymentsStore.error"
+          class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"
+        >
           <div class="flex items-center">
-            <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              class="w-5 h-5 text-red-600 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <p class="text-red-700 font-medium">
               {{ $t('common.errorWithColon') }} {{ propertiesStore.error || paymentsStore.error }}
@@ -42,17 +66,14 @@
         <!-- Contenu principal -->
         <template v-else>
           <!-- Liste des appartements -->
-          <PropertiesList 
-            :properties="properties" 
-            @add-click="isModalOpen = true"
-          />
-          
+          <PropertiesList :properties="properties" @add-click="isModalOpen = true" />
+
           <!-- Section Paiements -->
           <PaymentsSection :payments="payments" />
         </template>
       </div>
     </main>
-    
+
     <!-- Modal d'ajout de bien -->
     <AddPropertyModal
       :isOpen="isModalOpen"
@@ -61,17 +82,12 @@
     />
 
     <!-- Floating Action Button (mobile only) -->
-    <FloatingActionButton 
-      :aria-label="$t('common.addProperty')"
-      @click="isModalOpen = true"
-    />
+    <FloatingActionButton :aria-label="$t('common.addProperty')" @click="isModalOpen = true" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from '@/composables/useLingui'
 import { usePullToRefresh } from '@/composables/usePullToRefresh'
 import Sidebar from '../components/Sidebar.vue'
 import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
@@ -85,8 +101,6 @@ import PullToRefresh from '../components/common/PullToRefresh.vue'
 import { usePropertiesStore } from '@/stores/propertiesStore'
 import { usePaymentsStore } from '@/stores/paymentsStore'
 
-const router = useRouter()
-const { t } = useI18n()
 const propertiesStore = usePropertiesStore()
 const paymentsStore = usePaymentsStore()
 
@@ -123,14 +137,10 @@ const globalStats = computed(() => ({
  * Initialise le temps réel pour les mises à jour automatiques
  */
 onMounted(async () => {
-  await Promise.all([
-    propertiesStore.fetchProperties(),
-    paymentsStore.fetchPayments()
-  ])
-  
-  // Initialise les abonnements temps réel
-  propertiesStore.initRealtime()
-  paymentsStore.initRealtime()
+  await Promise.all([propertiesStore.fetchProperties(), paymentsStore.fetchPayments()])
+
+  // Note: Realtime est déjà initialisé globalement dans App.vue
+  // Pas besoin de réinitialiser ici
 })
 
 /**
@@ -143,19 +153,19 @@ onUnmounted(() => {
 
 const isModalOpen = ref(false)
 
-        /**
-         * Gère l'ajout d'un nouveau bien via le store Pinia (Supabase)
-         */
-        const handleAddProperty = async (newProperty) => {
-          try {
-            await propertiesStore.addProperty(newProperty)
-            isModalOpen.value = false
-            // Le toast est géré dans le store
-          } catch (error) {
-            // Le toast d'erreur est géré dans le store
-            console.error('Erreur lors de l\'ajout du bien:', error)
-          }
-        }
+/**
+ * Gère l'ajout d'un nouveau bien via le store Pinia (Supabase)
+ */
+const handleAddProperty = async newProperty => {
+  try {
+    await propertiesStore.addProperty(newProperty)
+    isModalOpen.value = false
+    // Le toast est géré dans le store
+  } catch (error) {
+    // Le toast d'erreur est géré dans le store
+    console.error("Erreur lors de l'ajout du bien:", error)
+  }
+}
 
 // TODO v0.2.0 : Rediriger vers /biens?mode=add au lieu d'ouvrir un modal local
 // const handleAddPropertyClick = () => {

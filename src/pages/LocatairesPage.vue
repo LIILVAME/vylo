@@ -2,7 +2,7 @@
   <div class="flex min-h-screen bg-gray-50">
     <!-- Sidebar -->
     <Sidebar />
-    
+
     <!-- Main Content -->
     <main ref="mainElement" class="flex-1 overflow-y-auto">
       <PullToRefresh
@@ -11,12 +11,11 @@
         :is-refreshing="isRefreshing"
         :threshold="80"
       />
-      <div class="max-w-7xl mx-auto px-2 sm:px-3 lg:px-6 xl:px-8 pt-16 pb-8 md:px-10 md:pt-10 md:pb-10">
+      <div
+        class="max-w-7xl mx-auto px-2 sm:px-3 lg:px-6 xl:px-8 pt-16 pb-8 md:px-10 md:pt-10 md:pb-10"
+      >
         <!-- Header avec statistiques -->
-        <TenantsHeader 
-          :stats="stats"
-          @add-tenant="isModalOpen = true"
-        />
+        <TenantsHeader :stats="stats" @add-tenant="isModalOpen = true" />
 
         <!-- Filtres -->
         <div class="mb-6 flex flex-wrap items-center gap-4">
@@ -37,15 +36,17 @@
 
         <!-- État de chargement -->
         <div v-if="propertiesStore.loading && tenants.length === 0" class="text-center py-16">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+          <div
+            class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"
+          ></div>
           <p class="text-gray-500">{{ $t('tenants.loading') }}</p>
         </div>
-        
+
         <!-- Loader inline si données déjà chargées -->
         <div v-else-if="propertiesStore.loading" class="text-center py-8">
           <InlineLoader />
         </div>
-        
+
         <!-- Liste des locataires -->
         <TenantsList
           v-else
@@ -59,11 +60,7 @@
     </main>
 
     <!-- Modal d'ajout de locataire -->
-    <AddTenantModal
-      :isOpen="isModalOpen"
-      @close="isModalOpen = false"
-      @submit="handleAddTenant"
-    />
+    <AddTenantModal :isOpen="isModalOpen" @close="isModalOpen = false" @submit="handleAddTenant" />
   </div>
 </template>
 
@@ -101,7 +98,8 @@ const { isPulling, pullDistance, isRefreshing } = usePullToRefresh(
  */
 onMounted(async () => {
   await propertiesStore.fetchProperties()
-  propertiesStore.initRealtime() // Les locataires suivent les changements de propriétés
+  // Note: Realtime est déjà initialisé globalement dans App.vue
+  // Pas besoin de réinitialiser ici
 })
 
 /**
@@ -164,42 +162,41 @@ const clearFilters = () => {
 /**
  * Gère l'ajout d'un nouveau locataire via le store Pinia (Supabase)
  */
-        const handleAddTenant = async (newTenant) => {
-          try {
-            const result = await tenantsStore.addTenant(newTenant)
-            isModalOpen.value = false
-            // Le toast est géré dans le store
-          } catch (error) {
-            // Le toast d'erreur est géré dans le store
-            console.error('Erreur lors de l\'ajout du locataire:', error)
-          }
-        }
+const handleAddTenant = async newTenant => {
+  try {
+    await tenantsStore.addTenant(newTenant)
+    isModalOpen.value = false
+    // Le toast est géré dans le store
+  } catch (error) {
+    // Le toast d'erreur est géré dans le store
+    console.error("Erreur lors de l'ajout du locataire:", error)
+  }
+}
 
 /**
  * Gère l'édition d'un locataire
  * TODO v0.2.0 : Ouvrir un modal d'édition ou rediriger vers une page de détail
  */
-const handleEditTenant = (tenant) => {
+const handleEditTenant = () => {
   // TODO v0.2.0 : Implémenter l'édition
   // Exemple : ouvrir un modal EditTenantModal avec les données du locataire
   // const isEditModalOpen = ref(true)
   // const selectedTenant = ref(tenant)
 }
 
-        /**
-         * Gère la suppression d'un locataire (libère le bien) via Supabase
-         * TODO v0.2.0 : Utiliser un composant de confirmation (modal) au lieu de confirm()
-         */
-        const handleDeleteTenant = async (tenantId) => {
-          if (window.confirm('Êtes-vous sûr de vouloir supprimer ce locataire ? Le bien sera libéré.')) {
-            try {
-              await tenantsStore.removeTenant(tenantId)
-              // Le toast est géré dans le store
-            } catch (error) {
-              // Le toast d'erreur est géré dans le store
-              console.error('Erreur lors de la suppression du locataire:', error)
-            }
-          }
-        }
+/**
+ * Gère la suppression d'un locataire (libère le bien) via Supabase
+ * TODO v0.2.0 : Utiliser un composant de confirmation (modal) au lieu de confirm()
+ */
+const handleDeleteTenant = async tenantId => {
+  if (window.confirm('Êtes-vous sûr de vouloir supprimer ce locataire ? Le bien sera libéré.')) {
+    try {
+      await tenantsStore.removeTenant(tenantId)
+      // Le toast est géré dans le store
+    } catch (error) {
+      // Le toast d'erreur est géré dans le store
+      console.error('Erreur lors de la suppression du locataire:', error)
+    }
+  }
+}
 </script>
-
