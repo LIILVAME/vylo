@@ -17,39 +17,43 @@ export async function getAnalytics(userId, options = {}) {
     return { success: false, message: 'User ID requis' }
   }
 
-  return withErrorHandling(async () => {
-    // 1️⃣ Récupère les paiements de l'utilisateur (via la vue pour avoir due_date)
-    const { data: payments, error: paymentsError } = await supabase
-      .from('payments_view')
-      .select('amount, due_date, status, properties(id, name)')
-      .eq('user_id', userId)
-      .order('due_date', { ascending: false })
+  return withErrorHandling(
+    async () => {
+      // 1️⃣ Récupère les paiements de l'utilisateur (via la vue pour avoir due_date)
+      const { data: payments, error: paymentsError } = await supabase
+        .from('payments_view')
+        .select('amount, due_date, status, properties(id, name)')
+        .eq('user_id', userId)
+        .order('due_date', { ascending: false })
 
-    if (paymentsError) {
-      return { data: null, error: paymentsError }
-    }
+      if (paymentsError) {
+        return { data: null, error: paymentsError }
+      }
 
-    // 2️⃣ Récupère les propriétés de l'utilisateur
-    const { data: properties, error: propertiesError } = await supabase
-      .from('properties')
-      .select('id, name, status, rent')
-      .eq('user_id', userId)
+      // 2️⃣ Récupère les propriétés de l'utilisateur
+      const { data: properties, error: propertiesError } = await supabase
+        .from('properties')
+        .select('id, name, status, rent')
+        .eq('user_id', userId)
 
-    if (propertiesError) {
-      return { data: null, error: propertiesError }
-    }
+      if (propertiesError) {
+        return { data: null, error: propertiesError }
+      }
 
-    // Retourne les données brutes pour que le store calcule les métriques
-    // (le store a la logique de calcul des métriques)
-    return {
-      data: {
-        payments: payments || [],
-        properties: properties || [],
-        options
-      },
-      error: null
-    }
-  }, 'getAnalytics')
+      // Retourne les données brutes pour que le store calcule les métriques
+      // (le store a la logique de calcul des métriques)
+      return {
+        data: {
+          payments: payments || [],
+          properties: properties || [],
+          options
+        },
+        error: null
+      }
+    },
+    'getAnalytics',
+    { timeout: 20000 }
+  ) // 20s pour les requêtes complexes avec plusieurs sous-requêtes
 }
 
 // Export de l'objet API (compatibilité avec les autres APIs)
