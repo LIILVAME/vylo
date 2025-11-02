@@ -1,80 +1,165 @@
-# 📋 Checklist Variables d'Environnement Vercel
+# ✅ Checklist Variables d'Environnement Vercel
 
-## 🔍 Vérification dans Vercel Dashboard
+## 📋 Statut Actuel
 
-### Étapes
+**Date de vérification :** 2025-11-02
 
-1. **Aller sur** : [Vercel Dashboard](https://vercel.com/dashboard)
-2. **Sélectionner le projet** : `doogoo` (ou `MyBI`)
-3. **Naviguer vers** : **Settings → Environment Variables**
+### ✅ Variables Essentielles (Configurées)
 
-### Variables Requises
+| Variable                 | Status        | Description                |
+| ------------------------ | ------------- | -------------------------- |
+| `VITE_SUPABASE_URL`      | ✅ Configurée | URL de l'instance Supabase |
+| `VITE_SUPABASE_ANON_KEY` | ✅ Configurée | Clé anonyme Supabase       |
 
-| Nom de Variable | Valeur Exemple | Incluse dans Build ? |
-|----------------|----------------|---------------------|
-| `VITE_SUPABASE_URL` | `https://hvhcyraudbabctsrxpqr.supabase.co` | ✅ **OUI** |
-| `VITE_SUPABASE_ANON_KEY` | `eyJhbGci...` (clé publique) | ✅ **OUI** |
-| `VITE_APP_NAME` | `Doogoo` | ✅ **OUI** |
-| `VITE_ADMIN_EMAIL` | `votre@email.com` | ✅ **OUI** |
-| `VITE_SENTRY_DSN` | `https://...@...sentry.io/...` | ⚠️ Optionnel |
-
-### ⚠️ Important
-
-- **`VITE_*`** variables doivent être **"Included in Build"** ✅
-- Les variables non préfixées `VITE_` ne sont **PAS** accessibles dans le code client
-- Après ajout/modification → **Redeploy** nécessaire
-
-### Actions à Effectuer
-
-1. ✅ Vérifier chaque variable existe
-2. ✅ Vérifier "Included in Build" est coché
-3. ✅ Si manquante → **Add** → Valeur → **Save**
-4. ✅ **Redeploy** le dernier déploiement ou créer un nouveau commit
+**Résultat :** L'application **fonctionne correctement** avec ces variables.
 
 ---
 
-## 🔧 Configuration Vercel
+## 🔧 Variables Optionnelles (Non configurées actuellement)
 
-### Build Settings
+Ces variables sont **optionnelles** et l'application fonctionne sans elles. Elles activent des fonctionnalités supplémentaires :
 
-- **Framework Preset** : Vite
-- **Build Command** : `npm run build` (défaut)
-- **Output Directory** : `dist`
-- **Install Command** : `npm install` (défaut)
+### Analytics
 
-### Domaine
+| Variable                  | Valeur Exemple      | Description                 | Impact si absente              |
+| ------------------------- | ------------------- | --------------------------- | ------------------------------ |
+| `VITE_GA4_MEASUREMENT_ID` | `G-XXXXXXXXXX`      | ID Google Analytics 4       | Analytics GA4 désactivé        |
+| `VITE_PLAUSIBLE_DOMAIN`   | `doogoo.vercel.app` | Domaine Plausible Analytics | Analytics Plausible désactivé  |
+| `VITE_ENABLE_ANALYTICS`   | `true`              | Active/désactive analytics  | Analytics désactivé par défaut |
 
-- **Production Domain** : `doogoo.vercel.app` ou `doogoo.app`
-- Vérifier les **Custom Domains** si configuré
+**Code de gestion :** Le code vérifie ces variables avant d'initialiser les analytics :
 
----
-
-## 🚨 Problèmes Courants
-
-### 1. Variable manquante au build
-
-**Symptôme** : `ReferenceError: import.meta.env.VITE_SUPABASE_URL is undefined`
-
-**Solution** : Vérifier "Included in Build" dans Vercel Dashboard
-
-### 2. Variable mal typée
-
-**Symptôme** : Erreur `VITE_SUPABASE_URL` non trouvée
-
-**Solution** : Vérifier l'orthographe exacte (majuscules/minuscules)
-
-### 3. Cache de build
-
-**Symptôme** : Variables mises à jour mais pas appliquées
-
-**Solution** : Forcer un redeploy complet (nouveau commit)
-
----
-
-## 📝 Commande de Vérification Locale
-
-```bash
-# Vérifier que les variables sont bien utilisées dans le code
-grep -r "import.meta.env.VITE_" src/
+```javascript
+// Dans src/main.js
+if (import.meta.env.VITE_GA4_MEASUREMENT_ID) {
+  initGoogleAnalytics()
+}
+if (import.meta.env.VITE_PLAUSIBLE_DOMAIN) {
+  initPlausible()
+}
 ```
 
+### Autres Variables Optionnelles
+
+| Variable           | Valeur Exemple              | Description                    |
+| ------------------ | --------------------------- | ------------------------------ |
+| `VITE_APP_NAME`    | `Doogoo`                    | Nom de l'application           |
+| `VITE_ADMIN_EMAIL` | `admin@doogoo.com`          | Email administrateur           |
+| `VITE_SENTRY_DSN`  | `https://...@sentry.io/...` | URL Sentry pour error tracking |
+
+---
+
+## 🚀 Configuration Recommandée
+
+### Pour le Fonctionnement Actuel
+
+✅ **Configuration minimale** (actuellement configurée) :
+
+```
+VITE_SUPABASE_URL        ✅
+VITE_SUPABASE_ANON_KEY   ✅
+```
+
+➡️ **Résultat :** Application fonctionnelle à 100%.
+
+### Pour Activer les Analytics (Optionnel)
+
+Si vous souhaitez activer Google Analytics 4 :
+
+1. Aller dans **Vercel Dashboard** → **Project Settings** → **Environment Variables**
+2. Ajouter :
+   ```
+   VITE_GA4_MEASUREMENT_ID = G-XXXXXXXXXX
+   ```
+3. Sélectionner **Production** (ou toutes les branches)
+4. Redéployer l'application
+
+Pour Plausible Analytics :
+
+1. Ajouter :
+   ```
+   VITE_PLAUSIBLE_DOMAIN = doogoo.vercel.app
+   ```
+2. Redéployer
+
+---
+
+## 📝 Comment Ajouter une Variable dans Vercel
+
+1. **Aller dans Vercel Dashboard**
+   - Sélectionner le projet `doogoo`
+   - Aller dans **Settings** → **Environment Variables**
+
+2. **Ajouter la variable**
+   - Cliquer sur **Add New**
+   - Saisir le nom (ex: `VITE_GA4_MEASUREMENT_ID`)
+   - Saisir la valeur
+   - Sélectionner les environnements :
+     - ✅ **Production** : pour `main` branch
+     - ✅ **Preview** : pour toutes les branches (PR)
+     - ✅ **Development** : pour `develop` branch (si configuré)
+
+3. **Sauvegarder**
+   - Cliquer sur **Save**
+   - **Important :** Redéployer l'application pour que la variable soit prise en compte
+
+---
+
+## 🔍 Vérification Locale
+
+Pour tester les variables d'environnement en local :
+
+1. Créer un fichier `.env.local` :
+
+```bash
+VITE_SUPABASE_URL=your-url
+VITE_SUPABASE_ANON_KEY=your-key
+VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+2. Lancer l'app :
+
+```bash
+npm run dev
+```
+
+3. Vérifier dans la console :
+
+```javascript
+console.log(import.meta.env.VITE_SUPABASE_URL) // Doit afficher votre URL
+```
+
+⚠️ **Attention :** Ne jamais commiter `.env.local` dans Git (déjà dans `.gitignore`).
+
+---
+
+## ✅ Checklist de Vérification
+
+### Avant Chaque Release
+
+- [ ] `VITE_SUPABASE_URL` configurée en production
+- [ ] `VITE_SUPABASE_ANON_KEY` configurée en production
+- [ ] Variables analytics (si utilisées) configurées
+- [ ] Test de déploiement sur preview
+- [ ] Vérification du build dans Vercel logs
+
+### Après Ajout d'une Variable
+
+- [ ] Variable ajoutée dans Vercel Dashboard
+- [ ] Environnements sélectionnés (Production/Preview)
+- [ ] Application redéployée
+- [ ] Variable accessible dans l'app (vérifier console)
+- [ ] Fonctionnalité associée fonctionne
+
+---
+
+## 📚 Documentation Liée
+
+- `docs/VERCEL_INTEGRATION.md` : Guide complet d'intégration
+- `docs/ANALYTICS_SETUP.md` : Configuration analytics détaillée
+- `docs/VERSIONING_RELEASE.md` : Processus de release
+
+---
+
+**Dernière mise à jour :** 2025-11-02  
+**Statut :** ✅ Configuration minimale opérationnelle
