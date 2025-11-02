@@ -37,3 +37,14 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 .vercel
+
+# Configuration MCP (peut contenir des secrets)
+**/mcp.json
+~/.cursor/mcp.json
+
+# Fichiers backup et temporaires
+*.backup
+*.old
+*.tmp
+my-bi.vercel.app-*.html
+Recording*.json
