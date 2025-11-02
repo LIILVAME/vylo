@@ -109,11 +109,13 @@ import AddTenantModal from '../components/tenants/AddTenantModal.vue'
 import InlineLoader from '../components/common/InlineLoader.vue'
 import { useTenantsStore } from '@/stores/tenantsStore'
 import { usePropertiesStore } from '@/stores/propertiesStore'
+import { useAuthStore } from '@/stores/authStore'
 import { PAYMENT_STATUS } from '@/utils/constants'
 
 const { t } = useI18n()
 const tenantsStore = useTenantsStore()
 const propertiesStore = usePropertiesStore()
+const authStore = useAuthStore()
 
 // Pull-to-refresh
 const mainElement = ref(null)
@@ -175,6 +177,8 @@ onMounted(async () => {
       filteredTenantsCount: filteredTenants.value.length,
       error: propertiesStore.error,
       hasTenants: propertiesStore.properties.some(p => p.tenant !== null),
+      userId: authStore.user?.id,
+      userEmail: authStore.user?.email,
       properties: propertiesStore.properties.map(p => ({
         id: p.id,
         name: p.name,
@@ -183,6 +187,17 @@ onMounted(async () => {
         tenant: p.tenant
       }))
     })
+
+    // Affiche un message si aucune propriété mais pas d'erreur
+    if (
+      propertiesStore.properties.length === 0 &&
+      !propertiesStore.loading &&
+      !propertiesStore.error
+    ) {
+      console.info(
+        '💡 Aucune propriété trouvée. Vérifiez dans Supabase Dashboard si des données existent pour cet utilisateur.'
+      )
+    }
 
     // Note: Realtime est déjà initialisé globalement dans App.vue
     // Pas besoin de réinitialiser ici
