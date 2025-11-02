@@ -80,8 +80,9 @@
         </div>
 
         <!-- Liste des locataires (s'affiche même si vide, le composant gère l'état vide) -->
+        <!-- Force l'affichage si on a des données OU si pas de loading (données déjà chargées) -->
         <TenantsList
-          v-if="!propertiesStore.loading && !propertiesStore.error"
+          v-if="!propertiesStore.loading || propertiesStore.properties.length > 0"
           :tenants="filteredTenants"
           :has-filters="hasActiveFilters"
           @edit-tenant="handleEditTenant"
