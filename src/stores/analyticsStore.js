@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from './authStore'
 import { formatCurrency } from '@/utils/formatters'
+import { analyticsApi } from '@/api/analytics'
 
 /**
  * Store Pinia pour gérer les statistiques et analyses
@@ -13,7 +13,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
   // State
   const loading = ref(false)
   const error = ref(null)
-  
+
   // Données brutes
   const revenueByMonth = ref([])
   const revenueByProperty = ref([])
@@ -46,27 +46,20 @@ export const useAnalyticsStore = defineStore('analytics', () => {
         throw new Error('User not authenticated')
       }
 
-      // 1️⃣ Récupère les paiements de l'utilisateur (via la vue pour avoir due_date)
-      const { data: payments, error: paymentsError } = await supabase
-        .from('payments_view')
-        .select('amount, due_date, status, properties(id, name)')
-        .eq('user_id', authStore.user.id)
-        .order('due_date', { ascending: false })
+      // Utilise l'API layer pour bénéficier de retry, timeout et gestion d'erreur centralisée
+      const result = await analyticsApi.getAnalytics(authStore.user.id, options)
 
-      if (paymentsError) throw paymentsError
+      if (!result.success) {
+        throw new Error(result.message)
+      }
 
-      // 2️⃣ Récupère les propriétés de l'utilisateur
-      const { data: properties, error: propertiesError } = await supabase
-        .from('properties')
-        .select('id, name, status, rent')
-        .eq('user_id', authStore.user.id)
-
-      if (propertiesError) throw propertiesError
+      const { payments, properties: fetchedProperties } = result.data
+      const properties = fetchedProperties
 
       // 3️⃣ Calcule le revenu mensuel (sur les 12 derniers mois)
       const revenueByMonthMap = new Map()
       const last12Months = []
-      
+
       // Génère les 12 derniers mois
       for (let i = 11; i >= 0; i--) {
         const date = new Date()
@@ -110,15 +103,15 @@ export const useAnalyticsStore = defineStore('analytics', () => {
         }
       })
 
-      revenueByProperty.value = Array.from(revenueByPropertyMap.values())
-        .sort((a, b) => b.total - a.total)
+      revenueByProperty.value = Array.from(revenueByPropertyMap.values()).sort(
+        (a, b) => b.total - a.total
+      )
 
       // 5️⃣ Calcule le taux d'occupation
       const totalProperties = properties?.length || 0
       const occupiedProperties = properties?.filter(p => p.status === 'occupied').length || 0
-      occupancyRate.value = totalProperties > 0 
-        ? Math.round((occupiedProperties / totalProperties) * 100) 
-        : 0
+      occupancyRate.value =
+        totalProperties > 0 ? Math.round((occupiedProperties / totalProperties) * 100) : 0
 
       // 6️⃣ Compte les retards de paiement
       latePayments.value = payments?.filter(p => p.status === 'late').length || 0
@@ -129,7 +122,8 @@ export const useAnalyticsStore = defineStore('analytics', () => {
       // 8️⃣ Loyer moyen
       const propertiesWithRent = properties?.filter(p => p.rent && p.rent > 0) || []
       if (propertiesWithRent.length > 0) {
-        averageRent.value = propertiesWithRent.reduce((sum, p) => sum + Number(p.rent), 0) / propertiesWithRent.length
+        averageRent.value =
+          propertiesWithRent.reduce((sum, p) => sum + Number(p.rent), 0) / propertiesWithRent.length
       }
 
       // 9️⃣ Répartition des statuts de paiement
@@ -140,7 +134,12 @@ export const useAnalyticsStore = defineStore('analytics', () => {
       }
 
       // 🔟 Comparaison de périodes (v0.3.0)
-      if (options.currentStart && options.currentEnd && options.previousStart && options.previousEnd) {
+      if (
+        options.currentStart &&
+        options.currentEnd &&
+        options.previousStart &&
+        options.previousEnd
+      ) {
         await fetchPeriodComparison(payments, properties, options)
       }
 
@@ -159,15 +158,17 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     const { currentStart, currentEnd, previousStart, previousEnd } = options
 
     // Filtre les paiements par période
-    const currentPayments = payments?.filter(p => {
-      const date = new Date(p.due_date)
-      return date >= new Date(currentStart) && date <= new Date(currentEnd)
-    }) || []
+    const currentPayments =
+      payments?.filter(p => {
+        const date = new Date(p.due_date)
+        return date >= new Date(currentStart) && date <= new Date(currentEnd)
+      }) || []
 
-    const previousPayments = payments?.filter(p => {
-      const date = new Date(p.due_date)
-      return date >= new Date(previousStart) && date <= new Date(previousEnd)
-    }) || []
+    const previousPayments =
+      payments?.filter(p => {
+        const date = new Date(p.due_date)
+        return date >= new Date(previousStart) && date <= new Date(previousEnd)
+      }) || []
 
     const currentRevenue = currentPayments
       .filter(p => p.status === 'paid')
@@ -177,9 +178,8 @@ export const useAnalyticsStore = defineStore('analytics', () => {
       .filter(p => p.status === 'paid')
       .reduce((sum, p) => sum + Number(p.amount || 0), 0)
 
-    const revenueChange = previousRevenue > 0 
-      ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 
-      : 0
+    const revenueChange =
+      previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0
 
     // Taux d'occupation (utilisation des données actuelles car elles ne changent pas beaucoup)
     const currentOccupied = properties?.filter(p => p.status === 'occupied').length || 0
@@ -198,12 +198,12 @@ export const useAnalyticsStore = defineStore('analytics', () => {
       },
       changes: {
         revenue: revenueChange,
-        payments: previousPayments.length > 0 
-          ? ((currentPayments.length - previousPayments.length) / previousPayments.length) * 100 
-          : 0,
-        occupancy: previousOccupied > 0 
-          ? ((currentOccupied - previousOccupied) / previousOccupied) * 100 
-          : 0
+        payments:
+          previousPayments.length > 0
+            ? ((currentPayments.length - previousPayments.length) / previousPayments.length) * 100
+            : 0,
+        occupancy:
+          previousOccupied > 0 ? ((currentOccupied - previousOccupied) / previousOccupied) * 100 : 0
       }
     }
   }
@@ -244,7 +244,9 @@ export const useAnalyticsStore = defineStore('analytics', () => {
 
   const revenueByPropertyChartOptions = computed(() => ({
     xaxis: {
-      categories: revenueByProperty.value.map(r => r.name.length > 15 ? r.name.substring(0, 15) + '...' : r.name)
+      categories: revenueByProperty.value.map(r =>
+        r.name.length > 15 ? r.name.substring(0, 15) + '...' : r.name
+      )
     },
     colors: ['#10B981'],
     plotOptions: {
