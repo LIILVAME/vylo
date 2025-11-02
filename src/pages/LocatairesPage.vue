@@ -81,7 +81,7 @@
 
         <!-- Liste des locataires (s'affiche même si vide, le composant gère l'état vide) -->
         <TenantsList
-          v-else
+          v-if="!propertiesStore.loading && !propertiesStore.error"
           :tenants="filteredTenants"
           :has-filters="hasActiveFilters"
           @edit-tenant="handleEditTenant"
@@ -134,18 +134,24 @@ onMounted(async () => {
     if (propertiesStore.properties.length === 0 && !propertiesStore.loading) {
       await propertiesStore.fetchProperties()
     }
-    
-    // Debug : Log pour diagnostic
-    if (import.meta.env.DEV) {
-      console.log('🔍 LocatairesPage - État après fetch:', {
-        loading: propertiesStore.loading,
-        propertiesCount: propertiesStore.properties.length,
-        tenantsCount: tenants.value.length,
-        error: propertiesStore.error,
-        hasTenants: propertiesStore.properties.some(p => p.tenant !== null)
-      })
-    }
-    
+
+    // Debug : Log pour diagnostic (TOUJOURS actif pour diagnostic production)
+    console.log('🔍 LocatairesPage - État après fetch:', {
+      loading: propertiesStore.loading,
+      propertiesCount: propertiesStore.properties.length,
+      tenantsCount: tenants.value.length,
+      filteredTenantsCount: filteredTenants.value.length,
+      error: propertiesStore.error,
+      hasTenants: propertiesStore.properties.some(p => p.tenant !== null),
+      properties: propertiesStore.properties.map(p => ({
+        id: p.id,
+        name: p.name,
+        status: p.status,
+        hasTenant: p.tenant !== null,
+        tenant: p.tenant
+      }))
+    })
+
     // Note: Realtime est déjà initialisé globalement dans App.vue
     // Pas besoin de réinitialiser ici
   } catch (error) {
@@ -161,7 +167,14 @@ onUnmounted(() => {
 })
 
 // Utilise les locataires du store Pinia (synchronisé avec propertiesStore)
-const tenants = computed(() => tenantsStore.tenants)
+const tenants = computed(() => {
+  const result = tenantsStore.tenants
+  console.log('🔄 computed tenants appelé:', {
+    count: result.length,
+    tenants: result
+  })
+  return result
+})
 
 // État local pour filtres et modal
 const activeFilter = ref('all')
@@ -197,10 +210,19 @@ const hasActiveFilters = computed(() => {
  * Filtre les locataires selon le filtre actif
  */
 const filteredTenants = computed(() => {
-  if (activeFilter.value === 'all') {
-    return tenants.value
-  }
-  return tenants.value.filter(tenant => tenant.status === activeFilter.value)
+  const result =
+    activeFilter.value === 'all'
+      ? tenants.value
+      : tenants.value.filter(tenant => tenant.status === activeFilter.value)
+
+  console.log('🔄 computed filteredTenants appelé:', {
+    activeFilter: activeFilter.value,
+    tenantsCount: tenants.value.length,
+    filteredCount: result.length,
+    result
+  })
+
+  return result
 })
 
 /**
