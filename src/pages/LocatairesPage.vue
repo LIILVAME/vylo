@@ -131,9 +131,33 @@ const { isPulling, pullDistance, isRefreshing } = usePullToRefresh(
  */
 onMounted(async () => {
   try {
-    // Force le fetch si pas encore chargé
-    if (propertiesStore.properties.length === 0 && !propertiesStore.loading) {
-      await propertiesStore.fetchProperties()
+    console.log('🚀 LocatairesPage onMounted - État initial:', {
+      propertiesCount: propertiesStore.properties.length,
+      loading: propertiesStore.loading,
+      error: propertiesStore.error
+    })
+
+    // Force le fetch si pas encore chargé OU si loading est bloqué
+    if (propertiesStore.properties.length === 0) {
+      if (propertiesStore.loading) {
+        console.warn('⚠️ Loading déjà en cours, on attend...')
+        // Attend max 3 secondes que le fetch se termine
+        let attempts = 0
+        while (propertiesStore.loading && attempts < 30) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+          attempts++
+        }
+        console.log('⏱️ Après attente:', {
+          loading: propertiesStore.loading,
+          propertiesCount: propertiesStore.properties.length
+        })
+      }
+
+      // Si toujours pas de données après attente, force un nouveau fetch
+      if (propertiesStore.properties.length === 0 && !propertiesStore.loading) {
+        console.log('🔄 Force nouveau fetch des propriétés')
+        await propertiesStore.fetchProperties(true) // force = true
+      }
     }
 
     // Debug : Log pour diagnostic (TOUJOURS actif pour diagnostic production)
@@ -156,7 +180,9 @@ onMounted(async () => {
     // Note: Realtime est déjà initialisé globalement dans App.vue
     // Pas besoin de réinitialiser ici
   } catch (error) {
-    console.error('Erreur lors du chargement des locataires:', error)
+    console.error('❌ Erreur lors du chargement des locataires:', error)
+    // Force loading à false en cas d'erreur
+    propertiesStore.loading = false
   }
 })
 
