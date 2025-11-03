@@ -46,7 +46,13 @@ export default {
     settings: 'Settings',
     logout: 'Logout',
     loggingOut: 'Logging out...',
-    language: 'Language'
+    language: 'Language',
+    lightMode: 'Light mode',
+    darkMode: 'Dark mode',
+    light: 'Light',
+    dark: 'Dark',
+    switchToLight: 'Switch to light mode',
+    switchToDark: 'Switch to dark mode'
   },
   dashboard: {
     title: 'Dashboard',
@@ -287,12 +293,36 @@ export default {
     markAsResolved: 'Mark as resolved',
     view: 'View'
   },
+  onboarding: {
+    skip: 'Skip',
+    previous: 'Previous',
+    next: 'Next',
+    finish: 'Finish',
+    dismiss: 'Dismiss guide',
+    restart: 'Restart guide',
+    welcome: 'Welcome to Doogoo!',
+    welcomeDescription: 'Follow this short guide to discover the main features.',
+    dashboardTitle: 'Your dashboard',
+    dashboardDescription: 'View your statistics, properties and payments at a glance.',
+    addPropertyTitle: 'Add your first property',
+    addPropertyDescription: 'Click this button to register your first property.',
+    propertyCardTitle: 'Manage your properties',
+    propertyCardDescription: 'Click Edit to update information or Delete to remove a property.',
+    addTenantTitle: 'Add a tenant',
+    addTenantDescription: "Register your tenants' information for complete tracking.",
+    paymentsTitle: 'Track payments',
+    paymentsDescription: 'View and manage all your rent payments from this section.'
+  },
   settings: {
     title: 'Settings',
     subtitle: 'Manage your preferences and personal information',
     profile: 'Profile',
     appPreferences: 'Application preferences',
     security: 'Security',
+    onboarding: {
+      title: 'Getting Started Guide',
+      description: 'Review the interactive guide to discover all Doogoo features.'
+    },
     theme: 'Theme',
     light: 'Light',
     dark: 'Dark',

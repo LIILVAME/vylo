@@ -14,7 +14,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['robots.txt'],
+      includeAssets: ['robots.txt', 'favicon.ico'],
       manifest: {
         name: 'Doogoo - Smart Property Monitoring & Analytics',
         short_name: 'Doogoo',

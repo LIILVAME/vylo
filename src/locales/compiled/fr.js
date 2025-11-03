@@ -46,7 +46,13 @@ export default {
     settings: 'Paramètres',
     logout: 'Déconnexion',
     loggingOut: 'Déconnexion...',
-    language: 'Langue'
+    language: 'Langue',
+    lightMode: 'Mode clair',
+    darkMode: 'Mode sombre',
+    light: 'Clair',
+    dark: 'Sombre',
+    switchToLight: 'Passer au mode clair',
+    switchToDark: 'Passer au mode sombre'
   },
   dashboard: {
     title: 'Tableau de bord',
@@ -287,12 +293,38 @@ export default {
     markAsResolved: 'Marquer comme résolu',
     view: 'Voir'
   },
+  onboarding: {
+    skip: 'Passer',
+    previous: 'Précédent',
+    next: 'Suivant',
+    finish: 'Terminer',
+    dismiss: 'Ignorer le guide',
+    restart: 'Redémarrer le guide',
+    welcome: 'Bienvenue sur Doogoo !',
+    welcomeDescription: 'Suivez ce court guide pour découvrir les fonctionnalités principales.',
+    dashboardTitle: 'Votre tableau de bord',
+    dashboardDescription: "Consultez vos statistiques, biens et paiements en un coup d'œil.",
+    addPropertyTitle: 'Ajouter votre premier bien',
+    addPropertyDescription: 'Cliquez sur ce bouton pour enregistrer votre première propriété.',
+    propertyCardTitle: 'Gérer vos biens',
+    propertyCardDescription:
+      'Cliquez sur Modifier pour mettre à jour les informations ou Supprimer pour retirer un bien.',
+    addTenantTitle: 'Ajouter un locataire',
+    addTenantDescription: 'Enregistrez les informations de vos locataires pour un suivi complet.',
+    paymentsTitle: 'Suivre les paiements',
+    paymentsDescription: 'Visualisez et gérez tous vos paiements de loyers depuis cette section.'
+  },
   settings: {
     title: 'Paramètres',
     subtitle: 'Gérez vos préférences et informations personnelles',
     profile: 'Profil',
     appPreferences: "Préférences de l'application",
     security: 'Sécurité',
+    onboarding: {
+      title: 'Guide de démarrage',
+      description:
+        'Revoyez le guide interactif pour découvrir toutes les fonctionnalités de Doogoo.'
+    },
     theme: 'Thème',
     light: 'Clair',
     dark: 'Sombre',
