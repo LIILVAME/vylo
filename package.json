@@ -15,6 +15,7 @@
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,json,css}\"",
     "audit:lighthouse": "node scripts/run-lighthouse.js",
     "audit:vercel": "node scripts/audit-vercel-env.js",
+    "verify:vercel": "node scripts/verify-vercel-env.js",
     "audit:supabase": "node scripts/test-supabase-connectivity.js",
     "audit:health": "node scripts/generate-health-report.js",
     "audit:all": "npm run audit:vercel && npm run audit:supabase && npm run audit:health",
