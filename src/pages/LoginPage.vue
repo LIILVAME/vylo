@@ -161,35 +161,17 @@ const oauthLoading = ref(false)
 const oauthProvider = ref(null)
 
 const emailError = computed(() => {
-  if (!form.value.email) {
-    // Affiche l'erreur seulement si elle concerne l'email
-    if (
-      authStore.error &&
-      (authStore.error.toLowerCase().includes('email') ||
-        authStore.error.toLowerCase().includes('utilisateur') ||
-        authStore.error.toLowerCase().includes('user'))
-    ) {
-      return authStore.error
-    }
-  }
   // Validation basique du format email
   if (form.value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
     return 'Veuillez entrer une adresse email valide'
   }
+  // Si l'email est vide, ne retourne pas d'erreur (le bouton sera désactivé par !form.email)
   return ''
 })
 
 const passwordError = computed(() => {
-  if (!form.value.password) {
-    // Affiche l'erreur seulement si elle concerne le mot de passe
-    if (
-      authStore.error &&
-      (authStore.error.toLowerCase().includes('password') ||
-        authStore.error.toLowerCase().includes('mot de passe'))
-    ) {
-      return authStore.error
-    }
-  }
+  // Pas de validation de format pour le mot de passe ici
+  // Si le password est vide, le bouton sera désactivé par !form.password
   return ''
 })
 
@@ -202,6 +184,17 @@ watch(
       setTimeout(() => {
         router.replace({ query: {} })
       }, 5000) // 5 secondes pour laisser voir le message
+    }
+  }
+)
+
+// Réinitialise l'erreur quand l'utilisateur modifie les champs
+watch(
+  () => [form.value.email, form.value.password],
+  () => {
+    // Réinitialise l'erreur quand l'utilisateur commence à taper
+    if (authStore.error) {
+      authStore.error = null
     }
   }
 )
