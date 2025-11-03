@@ -12,7 +12,7 @@
         class="w-24 h-24 mx-auto bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center"
       >
         <svg
-          class="w-12 h-12 text-gray-500 dark:text-gray-400"
+          class="w-12 h-12 text-gray-500 dark:text-gray-300"
           fill="none"
           stroke="currentColor"
           stroke-width="1.5"
@@ -33,7 +33,7 @@
     <!-- Titre -->
     <h3
       v-if="title"
-      class="text-xl sm:text-2xl font-bold text-black dark:text-gray-50 mb-2 tracking-tight"
+      class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-50 mb-2 tracking-tight"
     >
       {{ title }}
     </h3>

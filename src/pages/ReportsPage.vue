@@ -124,7 +124,7 @@
           <template #illustration>
             <div class="w-20 h-20 mx-auto flex items-center justify-center">
               <svg
-                class="w-20 h-20 text-gray-600 dark:text-gray-400"
+                class="w-20 h-20 text-gray-600 dark:text-gray-200"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="1.5"
