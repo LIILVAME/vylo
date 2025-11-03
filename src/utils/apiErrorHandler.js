@@ -34,7 +34,11 @@ export function handleApiError(error, context = '') {
       "Action non autorisée. Vous n'avez pas les droits nécessaires.",
     'duplicate key value violates unique constraint': 'Cette valeur existe déjà.',
     'foreign key constraint fails': 'Impossible de supprimer : des données sont liées.',
-    'null value in column': 'Des champs obligatoires sont manquants.'
+    'null value in column': 'Des champs obligatoires sont manquants.',
+    'violates foreign key constraint': 'Erreur de session. Veuillez vous reconnecter.',
+    properties_user_id_fkey: 'Erreur de session. Veuillez vous reconnecter.',
+    payments_user_id_fkey: 'Erreur de session. Veuillez vous reconnecter.',
+    alerts_user_id_fkey: 'Erreur de session. Veuillez vous reconnecter.'
   }
 
   // Remplace par un message plus convivial si disponible

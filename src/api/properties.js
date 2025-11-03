@@ -71,6 +71,16 @@ export async function createProperty(propertyData, userId) {
     return { success: false, message: 'User ID requis' }
   }
 
+  // Validation du format UUID
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(userId)) {
+    return {
+      success: false,
+      message: 'ID utilisateur invalide. Veuillez vous reconnecter.',
+      error: new Error('Invalid user ID format')
+    }
+  }
+
   // Timeout augmenté à 12s pour les créations (peuvent être plus lentes)
   // Si un tenant doit être créé après, le timeout total peut être jusqu'à ~20s
   const timeout = 12000

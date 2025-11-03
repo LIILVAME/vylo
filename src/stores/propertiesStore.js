@@ -157,6 +157,17 @@ export const usePropertiesStore = defineStore(
           throw new Error('User not authenticated')
         }
 
+        // Vérifie que l'ID utilisateur est valide (UUID)
+        if (!authStore.user.id || typeof authStore.user.id !== 'string') {
+          const errorMsg = 'ID utilisateur invalide. Veuillez vous reconnecter.'
+          error.value = errorMsg
+          loading.value = false
+          if (toastStore) {
+            toastStore.error(errorMsg)
+          }
+          throw new Error(errorMsg)
+        }
+
         // Optimistic UI : Ajoute temporairement le bien à la liste
         const optimisticProperty = {
           id: `temp-${Date.now()}`, // ID temporaire
