@@ -124,8 +124,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v10
         if: success()
         with:
-          urls: |
-            http://localhost:4173/
+          configPath: ./.github/lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true
 
