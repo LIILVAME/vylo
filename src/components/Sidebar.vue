@@ -85,8 +85,71 @@
         </router-link>
       </nav>
 
-      <!-- Sélecteur de langue -->
+      <!-- Toggle thème + Sélecteur de langue -->
       <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+        <!-- Bouton toggle thème -->
+        <button
+          @click="toggleTheme"
+          class="flex items-center justify-between w-full px-4 py-3 mb-4 text-gray-700 dark:text-gray-300 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm group"
+          :aria-label="isDarkMode ? $t('sidebar.switchToLight') : $t('sidebar.switchToDark')"
+        >
+          <div class="flex items-center">
+            <!-- Icône soleil (light mode) -->
+            <svg
+              v-if="!isDarkMode"
+              class="w-5 h-5 mr-3 text-yellow-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            <!-- Icône lune (dark mode) -->
+            <svg
+              v-else
+              class="w-5 h-5 mr-3 text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+              />
+            </svg>
+            <span class="font-medium">{{
+              isDarkMode ? $t('sidebar.darkMode') : $t('sidebar.lightMode')
+            }}</span>
+          </div>
+          <!-- Indicateur de transition -->
+          <div class="flex items-center">
+            <span class="text-xs text-gray-500 dark:text-gray-400 mr-2 hidden sm:inline">
+              {{ isDarkMode ? $t('sidebar.dark') : $t('sidebar.light') }}
+            </span>
+            <svg
+              class="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+              />
+            </svg>
+          </div>
+        </button>
+
+        <!-- Sélecteur de langue -->
         <div class="px-4 py-2 mb-4">
           <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">{{
             $t('sidebar.language')
@@ -288,6 +351,39 @@ const menuItems = computed(() => [
 
 const handleLanguageChange = event => {
   settingsStore.setLanguage(event.target.value)
+}
+
+/**
+ * Détermine si le mode sombre est actif
+ */
+const isDarkMode = computed(() => {
+  const currentTheme = settingsStore.theme
+  if (currentTheme === 'dark') return true
+  if (currentTheme === 'light') return false
+  // Si 'auto' ou 'system', détecte la préférence système
+  if (typeof window !== 'undefined') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  return false
+})
+
+/**
+ * Bascule entre le thème clair et sombre
+ */
+const toggleTheme = () => {
+  const currentTheme = settingsStore.theme
+  // Si mode système/auto, on bascule vers light ou dark selon la préférence actuelle
+  if (currentTheme === 'auto' || currentTheme === 'system') {
+    // Si système est dark, passe en light, sinon en dark
+    const systemIsDark =
+      typeof window !== 'undefined'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : false
+    settingsStore.setTheme(systemIsDark ? 'light' : 'dark')
+  } else {
+    // Bascule simple entre light et dark
+    settingsStore.setTheme(currentTheme === 'dark' ? 'light' : 'dark')
+  }
 }
 
 const isActive = path => {

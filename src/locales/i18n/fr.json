@@ -42,7 +42,13 @@
     "settings": "Paramètres",
     "logout": "Déconnexion",
     "loggingOut": "Déconnexion...",
-    "language": "Langue"
+    "language": "Langue",
+    "lightMode": "Mode clair",
+    "darkMode": "Mode sombre",
+    "light": "Clair",
+    "dark": "Sombre",
+    "switchToLight": "Passer au mode clair",
+    "switchToDark": "Passer au mode sombre"
   },
   "dashboard": {
     "title": "Tableau de bord",
