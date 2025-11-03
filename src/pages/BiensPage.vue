@@ -4,7 +4,7 @@
     <Sidebar />
 
     <!-- Main Content -->
-    <main ref="mainElement" class="flex-1 overflow-y-auto">
+    <main id="main-content" ref="mainElement" class="flex-1 overflow-y-auto" role="main">
       <PullToRefresh
         :is-pulling="isPulling"
         :pull-distance="pullDistance"
