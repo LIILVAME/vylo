@@ -212,4 +212,31 @@ by returning true, but the message channel closed before a response was received
 
 ---
 
+---
+
+## 🔄 Erreurs Additionnelles (2025-01-02 - Suite 2)
+
+### 7. ✅ CSP connect-src - Unsplash Images (Corrigé)
+
+**Erreur** :
+
+```
+Refused to connect to 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80'
+because it violates the following Content Security Policy directive: "connect-src ..."
+```
+
+**Cause** : Workbox (Service Worker) tente de charger les images Unsplash via `fetch()` pour les mettre en cache, mais `images.unsplash.com` n'est pas autorisé dans `connect-src`. Les images Unsplash sont utilisées dans :
+
+- `LandingPage.vue` (hero image, dashboard preview)
+- `propertiesStore.js` (images par défaut pour les propriétés)
+- Workbox runtime caching (stratégie `CacheFirst`)
+
+**Solution** : Ajout de `https://images.unsplash.com` dans `connect-src` pour permettre à Workbox de fetch les images pour le cache.
+
+**Fichier modifié** : `vercel.json`
+
+**Note** : `img-src` autorise déjà `https:` (donc toutes les images externes), mais `connect-src` est nécessaire pour les requêtes `fetch()` effectuées par Workbox.
+
+---
+
 **Dernière mise à jour** : 2025-01-02
