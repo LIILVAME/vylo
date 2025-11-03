@@ -46,20 +46,31 @@ const {
   dismiss
 } = useOnboarding()
 
-// Initialise l'onboarding quand les steps sont fournis
+// Initialise l'onboarding quand les steps sont fournis (mais ne démarre pas automatiquement)
 watch(
   () => props.steps,
   newSteps => {
-    if (newSteps && newSteps.length > 0 && (props.autoStart || !shouldShow.value)) {
-      init(newSteps)
+    if (newSteps && newSteps.length > 0 && !shouldShow.value) {
+      // Init sans activer (activate = false) sauf si autoStart est true
+      init(newSteps, props.autoStart)
     }
   },
   { immediate: true }
 )
 
+/**
+ * Démarre l'onboarding (pour déclenchement manuel)
+ */
+const startOnboarding = () => {
+  if (props.steps && props.steps.length > 0) {
+    // Init avec activation
+    init(props.steps, true)
+  }
+}
+
 // Expose les méthodes pour contrôle externe
 defineExpose({
-  start: () => init(props.steps),
+  start: startOnboarding,
   next,
   previous,
   complete,

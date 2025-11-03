@@ -1,5 +1,5 @@
 <template>
-  <OnboardingProvider :steps="onboardingSteps" :auto-start="false">
+  <OnboardingProvider ref="onboardingProviderRef" :steps="onboardingSteps" :auto-start="false">
     <div class="flex min-h-screen bg-gray-50">
       <!-- Sidebar -->
       <Sidebar />
@@ -146,13 +146,16 @@ import FloatingActionButton from '../components/common/FloatingActionButton.vue'
 import PullToRefresh from '../components/common/PullToRefresh.vue'
 import OnboardingProvider from '../components/onboarding/OnboardingProvider.vue'
 import { useI18n } from '@/composables/useLingui'
+import { useAuthStore } from '@/stores/authStore'
 import { usePropertiesStore } from '@/stores/propertiesStore'
 import { usePaymentsStore } from '@/stores/paymentsStore'
 
 const propertiesStore = usePropertiesStore()
 const paymentsStore = usePaymentsStore()
+const authStore = useAuthStore()
 const router = useRouter()
 const { t } = useI18n()
+const onboardingProviderRef = ref(null)
 
 /**
  * Étapes d'onboarding pour le dashboard
@@ -247,12 +250,51 @@ const globalStats = computed(() => ({
  * Note: App.vue charge déjà les données au démarrage, on ne recharge jamais ici
  * pour éviter les conflits et les états loading bloqués
  */
-onMounted(() => {
+onMounted(async () => {
   // App.vue gère déjà le chargement initial et le realtime
   // On fait confiance au store pour les données déjà chargées
   // Si les données ne sont pas présentes, c'est que App.vue est encore en train de charger
   // ou qu'il y a un problème de session, on attend simplement
+
+  // Vérifie si c'est le premier login et déclenche l'onboarding
+  await checkAndStartOnboarding()
 })
+
+/**
+ * Vérifie si c'est le premier login et déclenche l'onboarding si nécessaire
+ */
+const checkAndStartOnboarding = async () => {
+  // Attend un peu pour que les données soient chargées
+  await new Promise(resolve => setTimeout(resolve, 500))
+
+  if (!authStore.user || !onboardingProviderRef.value) {
+    return
+  }
+
+  // Vérifie si l'onboarding a déjà été complété ou rejeté
+  const onboardingCompleted = localStorage.getItem('onboarding_completed') === 'true'
+  const onboardingDismissed = localStorage.getItem('onboarding_dismissed') === 'true'
+
+  if (onboardingCompleted || onboardingDismissed) {
+    return
+  }
+
+  // Vérifie si c'est un nouvel utilisateur (pas de biens enregistrés)
+  // ou si l'utilisateur n'a jamais fait l'onboarding
+  const hasSeenOnboarding = localStorage.getItem(`onboarding_seen_${authStore.user.id}`) === 'true'
+
+  if (!hasSeenOnboarding && onboardingSteps.value.length > 0) {
+    // Attendre un peu plus pour que le DOM soit prêt
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // Déclenche l'onboarding
+    if (onboardingProviderRef.value && typeof onboardingProviderRef.value.start === 'function') {
+      onboardingProviderRef.value.start()
+      // Marque comme vu pour cet utilisateur
+      localStorage.setItem(`onboarding_seen_${authStore.user.id}`, 'true')
+    }
+  }
+}
 
 /**
  * Arrête le temps réel au démontage (optionnel)

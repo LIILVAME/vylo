@@ -36,14 +36,15 @@ export function useOnboarding() {
    * Vérifie si l'onboarding doit être affiché
    */
   const shouldShow = computed(() => {
-    return !isCompleted.value && !isDismissed.value && isActive.value
+    return !isCompleted.value && !isDismissed.value && isActive.value && currentStep.value !== null
   })
 
   /**
    * Initialise l'onboarding avec une liste d'étapes
    * @param {Array} stepsList - Liste des étapes [{ id, target, title, content, placement }]
+   * @param {boolean} activate - Si true, active immédiatement l'onboarding (défaut: true)
    */
-  const init = stepsList => {
+  const init = (stepsList, activate = true) => {
     steps.value = stepsList
 
     // Récupère la dernière étape enregistrée
@@ -54,7 +55,9 @@ export function useOnboarding() {
       currentStep.value = stepsList[0].id
     }
 
-    isActive.value = true
+    if (activate) {
+      isActive.value = true
+    }
   }
 
   /**
