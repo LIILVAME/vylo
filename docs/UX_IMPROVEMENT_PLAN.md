@@ -18,11 +18,6 @@
 - ✅ Système d'onboarding progressif avec tooltips contextuels
 - ✅ Guide adaptatif selon données disponibles
 
-**✅ Phase 2 (Priorité MOYENNE) - COMPLÉTÉE** :
-
-- ✅ Système d'onboarding progressif
-- ✅ Tooltips contextuels (intégrés dans onboarding)
-
 ---
 
 ## 📊 État Actuel vs Recommandations
