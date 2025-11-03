@@ -2,7 +2,7 @@
 
 **Date** : 3 novembre 2025  
 **Basé sur** : UX Review complet  
-**Statut** : 🎉 **Phase 1 + 2 COMPLÉTÉES — Priorités HAUTE et MOYENNE implémentées**
+**Statut** : 🎉 **Phase 1 + 2 COMPLÉTÉES — Priorités HAUTE et MOYENNE 100% implémentées**
 
 **✅ Phase 1 (Priorité HAUTE) - COMPLÉTÉE** :
 
@@ -15,11 +15,13 @@
 
 - ✅ Transitions douces sur cartes et boutons
 - ✅ Micro-interactions enrichies (hover, active, focus, scale)
+- ✅ Système d'onboarding progressif avec tooltips contextuels
+- ✅ Guide adaptatif selon données disponibles
 
-**⏳ Phase 2 restante** :
+**✅ Phase 2 (Priorité MOYENNE) - COMPLÉTÉE** :
 
-- Système d'onboarding progressif
-- Tooltips contextuels
+- ✅ Système d'onboarding progressif
+- ✅ Tooltips contextuels (intégrés dans onboarding)
 
 ---
 
@@ -256,8 +258,8 @@ src/stores/tablePreferencesStore.js (ou extension de settingsStore)
 
 - [x] Ajouter transitions sur cartes et boutons ✅
 - [x] Enrichir micro-interactions (hover, active, focus) ✅
-- [ ] Créer système d'onboarding progressif ⏳
-- [ ] Ajouter tooltips contextuels ⏳
+- [x] Créer système d'onboarding progressif ✅
+- [x] Ajouter tooltips contextuels ✅
 
 ### Phase 3 : Confort et Accessibilité (Priorité BASSE)
 
