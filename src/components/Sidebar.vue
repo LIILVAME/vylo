@@ -372,6 +372,11 @@ const isDarkMode = computed(() => {
  */
 const toggleTheme = () => {
   const currentTheme = settingsStore.theme
+
+  if (import.meta.env.DEV) {
+    console.debug('🔵 toggleTheme - Thème actuel:', currentTheme)
+  }
+
   // Si mode système/auto, on bascule vers light ou dark selon la préférence actuelle
   if (currentTheme === 'auto' || currentTheme === 'system') {
     // Si système est dark, passe en light, sinon en dark
@@ -379,10 +384,29 @@ const toggleTheme = () => {
       typeof window !== 'undefined'
         ? window.matchMedia('(prefers-color-scheme: dark)').matches
         : false
-    settingsStore.setTheme(systemIsDark ? 'light' : 'dark')
+    const newTheme = systemIsDark ? 'light' : 'dark'
+    if (import.meta.env.DEV) {
+      console.debug('🔵 toggleTheme - Mode système détecté, bascule vers:', newTheme)
+    }
+    settingsStore.setTheme(newTheme)
   } else {
     // Bascule simple entre light et dark
-    settingsStore.setTheme(currentTheme === 'dark' ? 'light' : 'dark')
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+    if (import.meta.env.DEV) {
+      console.debug('🔵 toggleTheme - Bascule vers:', newTheme)
+    }
+    settingsStore.setTheme(newTheme)
+  }
+
+  // Force une mise à jour immédiate pour vérifier
+  if (import.meta.env.DEV) {
+    setTimeout(() => {
+      console.debug('🔵 toggleTheme - Thème après changement:', settingsStore.theme)
+      console.debug(
+        '🔵 toggleTheme - Classe dark sur <html>:',
+        document.documentElement.classList.contains('dark')
+      )
+    }, 100)
   }
 }
 

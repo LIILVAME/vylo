@@ -38,7 +38,8 @@ export const useSettingsStore = defineStore('settings', () => {
           theme.value = parsed.theme === 'auto' ? 'system' : parsed.theme
         }
         if (parsed.alertThreshold !== undefined) alertThreshold.value = parsed.alertThreshold
-        if (parsed.notifications) notifications.value = { ...notifications.value, ...parsed.notifications }
+        if (parsed.notifications)
+          notifications.value = { ...notifications.value, ...parsed.notifications }
       }
     } catch (error) {
       console.warn('Erreur lors du chargement des paramètres depuis localStorage:', error)
@@ -67,35 +68,39 @@ export const useSettingsStore = defineStore('settings', () => {
    * Change la langue
    * @param {string} lang - Code langue ('fr' ou 'en')
    */
-  const setLanguage = (lang) => {
+  const setLanguage = lang => {
     if (['fr', 'en'].includes(lang) && lang !== language.value) {
       language.value = lang
       saveSettings()
-      
+
       // Met à jour i18n immédiatement
       try {
         // Utilise un import dynamique pour charger i18n
-        import('@/i18n').then((module) => {
-          const i18nInstance = module.default
-          if (i18nInstance && i18nInstance.locale) {
-            i18nInstance.locale.value = lang
-          }
-        }).catch((error) => {
-          console.warn('Impossible de mettre à jour i18n:', error)
-        })
+        import('@/i18n')
+          .then(module => {
+            const i18nInstance = module.default
+            if (i18nInstance && i18nInstance.locale) {
+              i18nInstance.locale.value = lang
+            }
+          })
+          .catch(error => {
+            console.warn('Impossible de mettre à jour i18n:', error)
+          })
       } catch (error) {
         console.warn('Impossible de mettre à jour i18n:', error)
       }
-      
+
       // Track language changed event
       if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
-        import('@/utils/analytics').then(({ trackDoogooEvent, DoogooEvents }) => {
-          trackDoogooEvent(DoogooEvents.LANGUAGE_CHANGED, {
-            language: lang
+        import('@/utils/analytics')
+          .then(({ trackDoogooEvent, DoogooEvents }) => {
+            trackDoogooEvent(DoogooEvents.LANGUAGE_CHANGED, {
+              language: lang
+            })
           })
-        }).catch(() => {})
+          .catch(() => {})
       }
-      
+
       // Recharger la page pour appliquer la nouvelle langue partout
       // (nécessaire car certains composants sont déjà rendus)
       if (typeof window !== 'undefined') {
@@ -108,18 +113,20 @@ export const useSettingsStore = defineStore('settings', () => {
    * Change la devise
    * @param {string} curr - Code devise ('EUR', 'USD', 'GBP', 'XOF')
    */
-  const setCurrency = (curr) => {
+  const setCurrency = curr => {
     if (['EUR', 'USD', 'GBP', 'XOF'].includes(curr)) {
       currency.value = curr
       saveSettings()
 
       // Track currency changed event
       if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
-        import('@/utils/analytics').then(({ trackDoogooEvent, DoogooEvents }) => {
-          trackDoogooEvent(DoogooEvents.CURRENCY_CHANGED, {
-            currency: curr
+        import('@/utils/analytics')
+          .then(({ trackDoogooEvent, DoogooEvents }) => {
+            trackDoogooEvent(DoogooEvents.CURRENCY_CHANGED, {
+              currency: curr
+            })
           })
-        }).catch(() => {})
+          .catch(() => {})
       }
     }
   }
@@ -128,29 +135,59 @@ export const useSettingsStore = defineStore('settings', () => {
    * Applique le thème sur le document HTML
    * @param {string} themeValue - Thème à appliquer ('light', 'dark', 'auto')
    */
-  const applyTheme = (themeValue) => {
+  const applyTheme = themeValue => {
     if (typeof window === 'undefined' || !document?.documentElement) {
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ applyTheme - Window ou document non disponible')
+      }
       return
     }
 
-    const html = document.documentElement
-    const root = document.querySelector('html')
+    const root = document.documentElement
 
-    if (!root) return
+    if (!root) {
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ applyTheme - Element <html> non trouvé')
+      }
+      return
+    }
+
+    if (import.meta.env.DEV) {
+      console.debug('🎨 applyTheme - Application du thème:', themeValue)
+    }
 
     // Supprime les classes dark existantes
     root.classList.remove('dark')
 
     if (themeValue === 'dark') {
       root.classList.add('dark')
+      if (import.meta.env.DEV) {
+        console.debug('✅ applyTheme - Classe dark ajoutée')
+      }
     } else if (themeValue === 'auto' || themeValue === 'system') {
       // Détecte la préférence système
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       if (prefersDark) {
         root.classList.add('dark')
+        if (import.meta.env.DEV) {
+          console.debug('✅ applyTheme - Mode système dark, classe dark ajoutée')
+        }
+      } else {
+        if (import.meta.env.DEV) {
+          console.debug('✅ applyTheme - Mode système light, classe dark retirée')
+        }
+      }
+    } else {
+      // 'light' - pas de classe dark
+      if (import.meta.env.DEV) {
+        console.debug('✅ applyTheme - Mode light, classe dark retirée')
       }
     }
-    // Si 'light', on ne fait rien (pas de classe dark)
+
+    // Vérification finale
+    if (import.meta.env.DEV) {
+      console.debug('🎨 applyTheme - État final - Classe dark:', root.classList.contains('dark'))
+    }
   }
 
   /**
@@ -166,7 +203,7 @@ export const useSettingsStore = defineStore('settings', () => {
    * Change le thème
    * @param {string} newTheme - Thème ('light', 'dark', 'auto' ou 'system')
    */
-  const setTheme = (newTheme) => {
+  const setTheme = newTheme => {
     if (['light', 'dark', 'auto', 'system'].includes(newTheme)) {
       theme.value = newTheme
       saveSettings()
@@ -195,8 +232,8 @@ export const useSettingsStore = defineStore('settings', () => {
 
     // Crée un nouveau listener
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    
-    systemThemeListener = (e) => {
+
+    systemThemeListener = e => {
       if (theme.value === 'auto' || theme.value === 'system') {
         applyTheme(theme.value)
       }
@@ -218,7 +255,7 @@ export const useSettingsStore = defineStore('settings', () => {
     if (typeof window === 'undefined' || !systemThemeListener) return
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    
+
     if (mediaQuery.removeEventListener) {
       mediaQuery.removeEventListener('change', systemThemeListener)
     } else if (mediaQuery.removeListener) {
@@ -233,7 +270,7 @@ export const useSettingsStore = defineStore('settings', () => {
    * Met à jour les notifications
    * @param {Object} newNotifications - Objet de notifications
    */
-  const setNotifications = (newNotifications) => {
+  const setNotifications = newNotifications => {
     notifications.value = { ...notifications.value, ...newNotifications }
     saveSettings()
   }
@@ -242,7 +279,7 @@ export const useSettingsStore = defineStore('settings', () => {
    * Met à jour le seuil d'alerte
    * @param {number} threshold - Nombre de jours
    */
-  const setAlertThreshold = (threshold) => {
+  const setAlertThreshold = threshold => {
     if (typeof threshold === 'number' && threshold >= 0) {
       alertThreshold.value = threshold
       saveSettings()
@@ -263,23 +300,31 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   // Sauvegarde automatique quand les valeurs changent
-  watch([language, currency, theme, alertThreshold, notifications], () => {
-    saveSettings()
-  }, { deep: true })
+  watch(
+    [language, currency, theme, alertThreshold, notifications],
+    () => {
+      saveSettings()
+    },
+    { deep: true }
+  )
 
   // Expose le store dans le cache pour formatCurrency
   // Utilise un watch pour mettre à jour le cache quand currency change
-  watch(currency, () => {
-    const storeForCache = {
-      get currency() {
-        return currency.value
-      },
-      get language() {
-        return language.value
+  watch(
+    currency,
+    () => {
+      const storeForCache = {
+        get currency() {
+          return currency.value
+        },
+        get language() {
+          return language.value
+        }
       }
-    }
-    setSettingsStoreCache(storeForCache)
-  }, { immediate: true })
+      setSettingsStoreCache(storeForCache)
+    },
+    { immediate: true }
+  )
 
   return {
     // State
@@ -300,4 +345,3 @@ export const useSettingsStore = defineStore('settings', () => {
     detectSystemTheme
   }
 })
-

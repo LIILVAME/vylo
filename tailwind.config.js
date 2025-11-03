@@ -1,9 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{vue,js,ts,jsx,tsx}",
-  ],
+  darkMode: 'class', // Active le mode dark via classe sur <html>
+  content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -17,14 +15,13 @@ export default {
           600: '#16a34a',
           700: '#15803d',
           800: '#166534',
-          900: '#14532d',
-        },
+          900: '#14532d'
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-      },
-    },
+        sans: ['Inter', 'system-ui', 'sans-serif']
+      }
+    }
   },
-  plugins: [],
+  plugins: []
 }
-
