@@ -2,7 +2,17 @@
 
 **Date** : 3 novembre 2025  
 **Basé sur** : UX Review complet  
-**Statut** : 📋 Plan d'action priorisé
+**Statut** : 🚀 **Phase 1 en cours — Priorité HAUTE partiellement complétée**
+
+**✅ Complété** :
+
+- Loading states sur toutes les suppressions
+- ConfirmModal amélioré avec spinner
+- Composable `useSafeDelete` créé pour standardisation future
+
+**⏳ En cours** :
+
+- Loading states sur formulaires (sauvegarde)
 
 ---
 
@@ -230,10 +240,10 @@ src/stores/tablePreferencesStore.js (ou extension de settingsStore)
 
 ### Phase 1 : Protection Utilisateur (Priorité HAUTE)
 
-- [ ] Audit complet des suppressions (vérifier toutes utilisent ConfirmModal)
-- [ ] Créer composable `useSafeDelete` pour standardiser
-- [ ] Ajouter loading states sur toutes les actions destructives
-- [ ] Ajouter loading states sur les formulaires (sauvegarde)
+- [x] Audit complet des suppressions (vérifier toutes utilisent ConfirmModal) ✅
+- [x] Créer composable `useSafeDelete` pour standardiser ✅
+- [x] Ajouter loading states sur toutes les actions destructives ✅
+- [ ] Ajouter loading states sur les formulaires (sauvegarde) ⏳
 
 ### Phase 2 : Feedback et Fluidité (Priorité MOYENNE)
 
