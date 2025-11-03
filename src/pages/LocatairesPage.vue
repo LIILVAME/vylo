@@ -106,6 +106,7 @@
       confirm-label="Supprimer"
       cancel-label="Annuler"
       variant="danger"
+      :isLoading="isDeletingTenant"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
       @update:isOpen="showDeleteConfirm = $event"
@@ -115,6 +116,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from '@/composables/useLingui'
 import { usePullToRefresh } from '@/composables/usePullToRefresh'
 import Sidebar from '../components/Sidebar.vue'
@@ -129,6 +131,7 @@ import { usePropertiesStore } from '@/stores/propertiesStore'
 import { PAYMENT_STATUS } from '@/utils/constants'
 
 const { t } = useI18n()
+const router = useRouter()
 const tenantsStore = useTenantsStore()
 const propertiesStore = usePropertiesStore()
 
@@ -251,13 +254,15 @@ const handleAddTenant = async newTenant => {
 
 /**
  * Gère l'édition d'un locataire
- * TODO v0.2.0 : Ouvrir un modal d'édition ou rediriger vers une page de détail
+ * Redirige vers la page de modification du bien associé
  */
-const handleEditTenant = () => {
-  // TODO v0.2.0 : Implémenter l'édition
-  // Exemple : ouvrir un modal EditTenantModal avec les données du locataire
-  // const isEditModalOpen = ref(true)
-  // const selectedTenant = ref(tenant)
+const handleEditTenant = tenant => {
+  // Un locataire est lié à un bien, on redirige vers la page de modification du bien
+  if (tenant && tenant.propertyId) {
+    router.push({ path: '/biens', query: { mode: 'edit', id: tenant.propertyId } })
+  } else {
+    console.warn('⚠️ handleEditTenant: locataire sans propertyId', tenant)
+  }
 }
 
 /**
@@ -271,15 +276,20 @@ const handleDeleteTenant = tenantId => {
   showDeleteConfirm.value = true
 }
 
+const isDeletingTenant = ref(false)
+
 const confirmDelete = async () => {
   if (!confirmDeleteId.value) return
 
+  isDeletingTenant.value = true
   try {
     await tenantsStore.removeTenant(confirmDeleteId.value)
     confirmDeleteId.value = null
     showDeleteConfirm.value = false
   } catch (error) {
     console.error('Erreur lors de la suppression du locataire:', error)
+  } finally {
+    isDeletingTenant.value = false
   }
 }
 

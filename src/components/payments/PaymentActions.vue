@@ -111,6 +111,7 @@
       confirm-label="Supprimer"
       cancel-label="Annuler"
       variant="danger"
+      :isLoading="paymentsStore.loading"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
       @update:isOpen="showDeleteConfirm = $event"
@@ -124,6 +125,7 @@ import { useI18n } from '@/composables/useLingui'
 import { jsPDF } from 'jspdf'
 import { useToastStore } from '@/stores/toastStore'
 import { useAuthStore } from '@/stores/authStore'
+import { usePaymentsStore } from '@/stores/paymentsStore'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
@@ -140,6 +142,7 @@ const emit = defineEmits(['edit', 'delete'])
 
 const toast = useToastStore()
 const authStore = useAuthStore()
+const paymentsStore = usePaymentsStore()
 const open = ref(false)
 const menuContainer = ref(null)
 const showDeleteConfirm = ref(false)

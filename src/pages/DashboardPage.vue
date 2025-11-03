@@ -115,6 +115,7 @@
       confirm-label="Supprimer"
       cancel-label="Annuler"
       variant="danger"
+      :isLoading="isDeletingProperty"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
       @update:isOpen="showDeleteConfirm = $event"
@@ -225,9 +226,12 @@ const handleDeleteProperty = propertyId => {
   showDeleteConfirm.value = true
 }
 
+const isDeletingProperty = ref(false)
+
 const confirmDelete = async () => {
   if (!confirmDeleteId.value) return
 
+  isDeletingProperty.value = true
   try {
     await propertiesStore.removeProperty(confirmDeleteId.value)
     confirmDeleteId.value = null
@@ -236,8 +240,8 @@ const confirmDelete = async () => {
   } catch (error) {
     // Le toast d'erreur est géré dans le store
     console.error('Erreur lors de la suppression du bien:', error)
-    confirmDeleteId.value = null
-    showDeleteConfirm.value = false
+  } finally {
+    isDeletingProperty.value = false
   }
 }
 
@@ -254,16 +258,21 @@ const handleEditPayment = payment => {
   router.push({ path: '/paiements', query: { mode: 'edit', id: payment.id } })
 }
 
+const isDeletingPayment = ref(false)
+
 /**
  * Gère la suppression d'un paiement
  */
 const handleDeletePayment = async paymentId => {
+  isDeletingPayment.value = true
   try {
     await paymentsStore.removePayment(paymentId)
     // Le toast est géré dans le store
   } catch (error) {
     // Le toast d'erreur est géré dans le store
     console.error('Erreur lors de la suppression du paiement:', error)
+  } finally {
+    isDeletingPayment.value = false
   }
 }
 

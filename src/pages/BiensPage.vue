@@ -108,6 +108,7 @@
       confirm-label="Supprimer"
       cancel-label="Annuler"
       variant="danger"
+      :isLoading="isDeletingProperty"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
       @update:isOpen="showDeleteConfirm = $event"
@@ -349,9 +350,12 @@ const handleDeleteProperty = propertyId => {
   showDeleteConfirm.value = true
 }
 
+const isDeletingProperty = ref(false)
+
 const confirmDelete = async () => {
   if (!confirmDeleteId.value) return
 
+  isDeletingProperty.value = true
   try {
     await propertiesStore.removeProperty(confirmDeleteId.value)
     confirmDeleteId.value = null
@@ -362,6 +366,8 @@ const confirmDelete = async () => {
     console.error('Erreur lors de la suppression du bien:', error)
     confirmDeleteId.value = null
     showDeleteConfirm.value = false
+  } finally {
+    isDeletingProperty.value = false
   }
 }
 
