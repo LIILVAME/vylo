@@ -8,7 +8,6 @@ import { useToastStore } from '@/stores/toastStore'
  * Synchronisé avec Supabase Auth pour la persistance de session
  */
 export const useAuthStore = defineStore('auth', () => {
-
   // State
   const user = ref(null)
   const loading = ref(false)
@@ -52,9 +51,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Track login event
       if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
-        import('@/utils/analytics').then(({ trackDoogooEvent, DoogooEvents }) => {
-          trackDoogooEvent(DoogooEvents.USER_LOGGED_IN)
-        }).catch(() => {})
+        import('@/utils/analytics')
+          .then(({ trackDoogooEvent, DoogooEvents }) => {
+            trackDoogooEvent(DoogooEvents.USER_LOGGED_IN)
+          })
+          .catch(() => {})
       }
 
       return { success: true, user: data.user }
@@ -100,35 +101,49 @@ export const useAuthStore = defineStore('auth', () => {
       // Si l'utilisateur est créé
       if (data?.user) {
         // Le trigger PostgreSQL créera automatiquement le profil dans la table profiles
-        // On peut aussi mettre à jour manuellement si nécessaire
-        if (data.session) {
-          // Connexion automatique - met à jour le profil immédiatement si possible
-          try {
-            await supabase.from('profiles').upsert({
+        // On met à jour le profil avec les métadonnées (full_name, phone)
+        try {
+          // Utilise upsert pour créer ou mettre à jour le profil
+          // Si confirmation email requise, le trigger créera le profil vide, qu'on met à jour ici
+          // Si connexion automatique, le profil peut déjà exister ou non
+          const phoneFromMetadata = metadata.phone || data.user.user_metadata?.phone || null
+          const fullNameFromMetadata = metadata.fullName || data.user.user_metadata?.full_name || ''
+
+          await supabase.from('profiles').upsert(
+            {
               id: data.user.id,
               user_id: data.user.id,
-              full_name: metadata.fullName || '',
-              phone: metadata.phone || null
-            }, {
+              full_name: fullNameFromMetadata,
+              phone: phoneFromMetadata
+            },
+            {
               onConflict: 'user_id'
+            }
+          )
+
+          if (import.meta.env.DEV && phoneFromMetadata) {
+            console.debug('✅ Profil créé/mis à jour avec téléphone:', phoneFromMetadata)
+          }
+        } catch (profileError) {
+          // Le trigger devrait déjà avoir créé le profil, donc cette erreur n'est pas critique
+          console.warn('Erreur lors de la mise à jour du profil:', profileError)
+        }
+
+        user.value = data.user
+        session.value = data.session
+
+        // Track signup event
+        if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
+          import('@/utils/analytics')
+            .then(({ trackDoogooEvent, DoogooEvents }) => {
+              trackDoogooEvent(DoogooEvents.USER_SIGNED_UP, {
+                email: email
+              })
             })
-          } catch (profileError) {
-            // Le trigger devrait déjà avoir créé le profil, donc cette erreur n'est pas critique
-            console.warn('Erreur lors de la mise à jour du profil:', profileError)
-      }
+            .catch(() => {})
+        }
 
-      user.value = data.user
-      session.value = data.session
-
-      // Track signup event
-      if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
-        import('@/utils/analytics').then(({ trackDoogooEvent, DoogooEvents }) => {
-          trackDoogooEvent(DoogooEvents.USER_SIGNED_UP, {
-            email: email
-          })
-        }).catch(() => {})
-      }
-
+        if (data.session) {
           toastStore.success('Compte créé avec succès !')
         } else {
           // Confirmation email requise - le trigger créera le profil à la confirmation
@@ -166,18 +181,18 @@ export const useAuthStore = defineStore('auth', () => {
         const { useAlertsStore } = await import('@/stores/alertsStore')
         const { useAnalyticsStore } = await import('@/stores/analyticsStore')
         const { useReportsStore } = await import('@/stores/reportsStore')
-        
+
         const propertiesStore = usePropertiesStore()
         const paymentsStore = usePaymentsStore()
         const tenantsStore = useTenantsStore()
         const alertsStore = useAlertsStore()
         const analyticsStore = useAnalyticsStore()
         const reportsStore = useReportsStore()
-        
+
         // Arrête Realtime en premier pour éviter que les callbacks accèdent à null
         propertiesStore.stopRealtime()
         paymentsStore.stopRealtime()
-        
+
         // Réinitialise tous les stores
         propertiesStore.$reset()
         paymentsStore.$reset()
@@ -207,9 +222,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Track logout event
       if (import.meta.env.VITE_ENABLE_ANALYTICS === 'true') {
-        import('@/utils/analytics').then(({ trackDoogooEvent, DoogooEvents }) => {
-          trackDoogooEvent(DoogooEvents.USER_LOGGED_OUT)
-        }).catch(() => {})
+        import('@/utils/analytics')
+          .then(({ trackDoogooEvent, DoogooEvents }) => {
+            trackDoogooEvent(DoogooEvents.USER_LOGGED_OUT)
+          })
+          .catch(() => {})
       }
 
       profile.value = null
@@ -234,7 +251,10 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+      const {
+        data: { session: currentSession },
+        error: sessionError
+      } = await supabase.auth.getSession()
 
       if (sessionError) {
         console.error('Erreur lors de la récupération de la session:', sessionError)
@@ -283,7 +303,10 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
 
     try {
-      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
+      const {
+        data: { user: currentUser },
+        error: authError
+      } = await supabase.auth.getUser()
 
       if (authError) {
         // Ne définit l'erreur que si pas en mode silencieux
@@ -299,7 +322,9 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = currentUser
 
       // Récupère également la session
-      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      const {
+        data: { session: currentSession }
+      } = await supabase.auth.getSession()
       session.value = currentSession
 
       // Charge le profil utilisateur si disponible (ne bloque pas en cas d'erreur)
@@ -338,7 +363,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Détermine l'URL de redirection
       const baseUrl = window.location.origin
       const redirectUrl = redirectTo || `${baseUrl}/dashboard`
-      
+
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -381,7 +406,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Détermine l'URL de redirection
       const baseUrl = window.location.origin
       const redirectUrl = redirectTo || `${baseUrl}/dashboard`
-      
+
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
@@ -411,7 +436,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Réinitialise le mot de passe
    * @param {string} email - Email pour recevoir le lien de réinitialisation
    */
-  const resetPassword = async (email) => {
+  const resetPassword = async email => {
     loading.value = true
     error.value = null
 
@@ -478,6 +503,28 @@ export const useAuthStore = defineStore('auth', () => {
         return null
       }
 
+      // Si profil existe mais téléphone manquant, synchronise depuis user_metadata
+      if (data && !data.phone && user.value.user_metadata?.phone) {
+        try {
+          const { data: updatedProfile, error: updateError } = await supabase
+            .from('profiles')
+            .update({ phone: user.value.user_metadata.phone })
+            .eq('user_id', user.value.id)
+            .select()
+            .single()
+
+          if (!updateError && updatedProfile) {
+            data.phone = updatedProfile.phone
+            if (import.meta.env.DEV) {
+              console.debug('✅ Téléphone synchronisé depuis user_metadata vers profiles')
+            }
+          }
+        } catch (syncError) {
+          // Erreur non bloquante - on continue avec les données existantes
+          console.warn('Erreur lors de la synchronisation du téléphone:', syncError)
+        }
+      }
+
       profile.value = data || null
       lastProfileFetchTime = Date.now()
       profileFetchInProgress = false
@@ -494,7 +541,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Met à jour le profil utilisateur dans Supabase
    * @param {Object} profileData - Données du profil à mettre à jour
    */
-  const updateProfile = async (profileData) => {
+  const updateProfile = async profileData => {
     if (!user.value) {
       throw new Error('User not authenticated')
     }
@@ -505,16 +552,19 @@ export const useAuthStore = defineStore('auth', () => {
       // Met à jour le profil dans la table profiles
       const { data, error: updateError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.value.id,
-          user_id: user.value.id,
-          full_name: profileData.fullName || profileData.name,
-          phone: profileData.phone || null,
-          company: profileData.company || null,
-          avatar_url: profileData.avatar_url || null
-        }, {
-          onConflict: 'user_id'
-        })
+        .upsert(
+          {
+            id: user.value.id,
+            user_id: user.value.id,
+            full_name: profileData.fullName || profileData.name,
+            phone: profileData.phone || null,
+            company: profileData.company || null,
+            avatar_url: profileData.avatar_url || null
+          },
+          {
+            onConflict: 'user_id'
+          }
+        )
         .select()
         .single()
 
@@ -552,10 +602,35 @@ export const useAuthStore = defineStore('auth', () => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         user.value = session?.user ?? null
         session.value = session
-        // Charge le profil après connexion (ne bloque pas en cas d'erreur)
+        // Charge le profil après connexion et synchronise téléphone si nécessaire
         if (session?.user) {
           try {
             await fetchProfile()
+            // Synchronise le téléphone depuis user_metadata vers profiles si nécessaire
+            if (session.user.user_metadata?.phone) {
+              try {
+                const { data: currentProfile } = await supabase
+                  .from('profiles')
+                  .select('phone')
+                  .eq('user_id', session.user.id)
+                  .single()
+
+                // Si téléphone manquant dans profiles mais présent dans user_metadata, synchronise
+                if (!currentProfile?.phone) {
+                  await supabase
+                    .from('profiles')
+                    .update({ phone: session.user.user_metadata.phone })
+                    .eq('user_id', session.user.id)
+
+                  if (import.meta.env.DEV) {
+                    console.debug('✅ Téléphone synchronisé au login depuis user_metadata')
+                  }
+                }
+              } catch (syncError) {
+                // Erreur non bloquante
+                console.warn('Erreur lors de la synchronisation du téléphone au login:', syncError)
+              }
+            }
           } catch (err) {
             console.warn('Impossible de charger le profil après connexion (non bloquant):', err)
           }
@@ -567,14 +642,14 @@ export const useAuthStore = defineStore('auth', () => {
           if (user.value !== null) user.value = null
           if (session.value !== null) session.value = null
           if (profile.value !== null) profile.value = null
-          
+
           // Arrête les abonnements Realtime si les stores sont disponibles
           try {
             const { usePropertiesStore } = await import('@/stores/propertiesStore')
             const { usePaymentsStore } = await import('@/stores/paymentsStore')
             const propertiesStore = usePropertiesStore()
             const paymentsStore = usePaymentsStore()
-            
+
             propertiesStore.stopRealtime()
             paymentsStore.stopRealtime()
           } catch (cleanupError) {
@@ -611,4 +686,3 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithApple
   }
 })
-
