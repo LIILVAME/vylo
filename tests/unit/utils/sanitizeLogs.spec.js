@@ -84,8 +84,9 @@ describe('sanitizeLogs', () => {
   describe('sanitizeSession', () => {
     it('should sanitize session object', () => {
       const session = {
-        access_token: 'eyJhbGciOiJIUzI1NiIs...',
-        refresh_token: 'refresh_token_value',
+        access_token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U',
+        refresh_token: 'refresh_token_value_longer_than_twenty_characters_to_test_masking',
         user: {
           id: '5d7b4a1c-f983-43d8-87c1-613a72509706',
           email: 'test@example.com'

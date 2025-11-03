@@ -2,11 +2,7 @@
   <!-- Overlay -->
   <Teleport to="body">
     <Transition name="modal">
-      <div
-        v-if="isOpen"
-        class="fixed inset-0 z-50 overflow-y-auto"
-        @click.self="handleClose"
-      >
+      <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto" @click.self="handleClose">
         <!-- Overlay backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
 
@@ -25,7 +21,12 @@
                 :aria-label="$t('common.close')"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -35,7 +36,10 @@
               <div class="space-y-4">
                 <!-- Bien concerné -->
                 <div>
-                  <label for="payment-property" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="payment-property"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {{ $t('payments.relatedProperty') }} <span class="text-red-500">*</span>
                   </label>
                   <select
@@ -101,7 +105,10 @@
 
                 <!-- Date d'échéance -->
                 <div>
-                  <label for="payment-due-date" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="payment-due-date"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {{ $t('payments.dueDate') }} <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -141,12 +148,14 @@
                 >
                   {{ $t('common.cancel') }}
                 </button>
-                <button
-                  type="submit"
-                  class="btn-primary flex items-center"
-                >
+                <button type="submit" class="btn-primary flex items-center">
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 4v16m8-8H4"
+                    />
                   </svg>
                   {{ $t('common.add') }}
                 </button>
@@ -161,14 +170,12 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useI18n } from '@/composables/useLingui'
 import { TRANSACTION_STATUS } from '@/utils/constants'
 import { usePropertiesStore } from '@/stores/propertiesStore'
-import { usePaymentsStore } from '@/stores/paymentsStore'
 import { useToastStore } from '@/stores/toastStore'
 import { paymentSchema, validate } from '@/utils/validators'
 
-const { t } = useI18n()
+// Utilise $t dans le template, pas besoin de t dans le script
 
 const props = defineProps({
   isOpen: {
@@ -180,7 +187,6 @@ const props = defineProps({
 const emit = defineEmits(['close', 'submit'])
 
 const propertiesStore = usePropertiesStore()
-const paymentsStore = usePaymentsStore()
 const toastStore = useToastStore()
 
 const form = ref({
@@ -229,10 +235,8 @@ const handleClose = () => {
  */
 const handlePropertyChange = () => {
   if (form.value.propertyId && form.value.propertyId !== 'custom') {
-    const selectedProperty = propertiesStore.properties.find(
-      p => p.id === form.value.propertyId
-    )
-    
+    const selectedProperty = propertiesStore.properties.find(p => p.id === form.value.propertyId)
+
     if (selectedProperty) {
       form.value.tenant = selectedProperty.tenant?.name || ''
       form.value.amount = selectedProperty.rent || null
@@ -251,7 +255,7 @@ const handlePropertyChange = () => {
  */
 const handleSubmit = () => {
   validationErrors.value = {}
-  
+
   // Détermine le nom du bien
   let propertyName = ''
   let propertyId = null
@@ -266,9 +270,7 @@ const handleSubmit = () => {
     }
     propertyId = null
   } else if (form.value.propertyId) {
-    const selectedProperty = propertiesStore.properties.find(
-      p => p.id === form.value.propertyId
-    )
+    const selectedProperty = propertiesStore.properties.find(p => p.id === form.value.propertyId)
     propertyName = selectedProperty?.name || ''
     propertyId = form.value.propertyId // UUID, pas besoin de conversion
   } else {
@@ -277,7 +279,7 @@ const handleSubmit = () => {
     }
     return
   }
-  
+
   // Prépare les données à soumettre (convertit propertyId en UUID ou génère un UUID temporaire)
   const submitData = {
     propertyId: propertyId || '00000000-0000-0000-0000-000000000000', // UUID temporaire si custom
@@ -285,16 +287,16 @@ const handleSubmit = () => {
     dueDate: form.value.dueDate,
     status: form.value.status || 'pending'
   }
-  
+
   // Validation avec Zod
   const validationResult = validate(paymentSchema, submitData)
-  
+
   if (!validationResult.success) {
     // Affiche les erreurs de validation
     if (toastStore) {
       toastStore.error(`Validation échouée : ${validationResult.error}`)
     }
-    
+
     // Mappe les erreurs par champ
     if (validationResult.errors) {
       validationResult.errors.forEach(error => {
@@ -308,19 +310,19 @@ const handleSubmit = () => {
         }
       })
     }
-    
+
     return
   }
-  
+
   // Ajoute les champs additionnels non validés par Zod mais nécessaires pour l'UI
   const finalData = {
     ...validationResult.data,
     property: propertyName,
     tenant: form.value.tenant?.trim() || ''
   }
-  
+
   emit('submit', finalData)
-  
+
   resetForm()
   emit('close')
 }
@@ -328,11 +330,14 @@ const handleSubmit = () => {
 /**
  * Réinitialise le formulaire quand le modal se ferme
  */
-watch(() => props.isOpen, (newValue) => {
-  if (!newValue) {
-    resetForm()
+watch(
+  () => props.isOpen,
+  newValue => {
+    if (!newValue) {
+      resetForm()
+    }
   }
-})
+)
 </script>
 
 <style scoped>
@@ -357,4 +362,3 @@ watch(() => props.isOpen, (newValue) => {
   transform: scale(0.95);
 }
 </style>
-

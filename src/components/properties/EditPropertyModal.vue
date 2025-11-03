@@ -2,11 +2,7 @@
   <!-- Overlay -->
   <Teleport to="body">
     <Transition name="modal">
-      <div
-        v-if="isOpen"
-        class="fixed inset-0 z-50 overflow-y-auto"
-        @click.self="handleClose"
-      >
+      <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto" @click.self="handleClose">
         <!-- Overlay backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
 
@@ -18,14 +14,21 @@
           >
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-              <h2 class="text-xl font-semibold text-gray-900">{{ $t('properties.editProperty') }}</h2>
+              <h2 class="text-xl font-semibold text-gray-900">
+                {{ $t('properties.editProperty') }}
+              </h2>
               <button
                 @click="handleClose"
                 class="text-gray-400 hover:text-gray-600 transition-colors"
                 :aria-label="$t('common.close')"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -35,7 +38,10 @@
               <div class="space-y-4">
                 <!-- Nom du bien -->
                 <div>
-                  <label for="edit-property-name" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="edit-property-name"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {{ $t('properties.name') }} <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -50,7 +56,10 @@
 
                 <!-- Adresse -->
                 <div>
-                  <label for="edit-property-address" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="edit-property-address"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {{ $t('properties.address') }} <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -65,7 +74,10 @@
 
                 <!-- Ville -->
                 <div>
-                  <label for="edit-property-city" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="edit-property-city"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {{ $t('properties.city') }} <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -80,7 +92,10 @@
 
                 <!-- Loyer -->
                 <div>
-                  <label for="edit-property-rent" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="edit-property-rent"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {{ $t('properties.monthlyRent') }} <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -97,7 +112,10 @@
 
                 <!-- Statut -->
                 <div>
-                  <label for="edit-property-status" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    for="edit-property-status"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {{ $t('properties.status') }} <span class="text-red-500">*</span>
                   </label>
                   <select
@@ -113,13 +131,21 @@
                 </div>
 
                 <!-- Informations du locataire (affiché uniquement si bien occupé) -->
-                <div v-if="form.status === PROPERTY_STATUS.OCCUPIED" class="border-t border-gray-200 pt-4 mt-4">
-                  <h3 class="text-sm font-semibold mb-3 text-gray-700">{{ $t('properties.tenantInfo') }}</h3>
-                  
+                <div
+                  v-if="form.status === PROPERTY_STATUS.OCCUPIED"
+                  class="border-t border-gray-200 pt-4 mt-4"
+                >
+                  <h3 class="text-sm font-semibold mb-3 text-gray-700">
+                    {{ $t('properties.tenantInfo') }}
+                  </h3>
+
                   <div class="space-y-3">
                     <!-- Nom du locataire -->
                     <div>
-                      <label for="edit-tenant-name" class="block text-sm font-medium text-gray-700 mb-2">
+                      <label
+                        for="edit-tenant-name"
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
                         {{ $t('properties.tenantName') }} <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -134,7 +160,10 @@
 
                     <!-- Date d'entrée -->
                     <div>
-                      <label for="edit-tenant-entry-date" class="block text-sm font-medium text-gray-700 mb-2">
+                      <label
+                        for="edit-tenant-entry-date"
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
                         {{ $t('tenants.entryDate') }} <span class="text-red-500">*</span>
                       </label>
                       <input
@@ -148,7 +177,10 @@
 
                     <!-- Statut de paiement -->
                     <div>
-                      <label for="edit-tenant-status" class="block text-sm font-medium text-gray-700 mb-2">
+                      <label
+                        for="edit-tenant-status"
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
                         {{ $t('tenants.paymentStatus') }} <span class="text-red-500">*</span>
                       </label>
                       <select
@@ -174,12 +206,14 @@
                 >
                   {{ $t('common.cancel') }}
                 </button>
-                <button
-                  type="submit"
-                  class="btn-primary flex items-center"
-                >
+                <button type="submit" class="btn-primary flex items-center">
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   {{ $t('common.save') }}
                 </button>
@@ -194,10 +228,9 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useI18n } from '@/composables/useLingui'
 import { PROPERTY_STATUS } from '@/utils/constants'
 
-const { t } = useI18n()
+// Utilise $t dans le template, pas besoin de t dans le script
 
 const props = defineProps({
   isOpen: {
@@ -284,7 +317,7 @@ const handleClose = () => {
  */
 const handleSubmit = () => {
   // TODO v0.2.0 : Valider les données avec un schéma (Zod, Yup, etc.)
-  
+
   // Prépare les données à soumettre
   const submitData = {
     name: form.value.name,
@@ -293,17 +326,18 @@ const handleSubmit = () => {
     rent: Number(form.value.rent),
     status: form.value.status,
     // Ajoute les informations du locataire seulement si le bien est occupé
-    tenant: form.value.status === PROPERTY_STATUS.OCCUPIED
-      ? {
-          name: form.value.tenant.name,
-          entryDate: form.value.tenant.entryDate,
-          status: form.value.tenant.status
-        }
-      : null
+    tenant:
+      form.value.status === PROPERTY_STATUS.OCCUPIED
+        ? {
+            name: form.value.tenant.name,
+            entryDate: form.value.tenant.entryDate,
+            status: form.value.tenant.status
+          }
+        : null
   }
-  
+
   emit('submit', submitData)
-  
+
   resetForm()
   emit('close')
 }
@@ -311,26 +345,33 @@ const handleSubmit = () => {
 /**
  * Réinitialise les champs locataire si on change le statut de "occupé" à "libre"
  */
-watch(() => form.value.status, (newStatus) => {
-  if (newStatus !== PROPERTY_STATUS.OCCUPIED) {
-    form.value.tenant = {
-      name: '',
-      entryDate: '',
-      status: 'on_time'
+watch(
+  () => form.value.status,
+  newStatus => {
+    if (newStatus !== PROPERTY_STATUS.OCCUPIED) {
+      form.value.tenant = {
+        name: '',
+        entryDate: '',
+        status: 'on_time'
+      }
     }
   }
-})
+)
 
 /**
  * Initialise le formulaire quand le modal s'ouvre ou quand le bien change
  */
-watch([() => props.isOpen, () => props.property], ([isOpen, property]) => {
-  if (isOpen && property) {
-    initializeForm()
-  } else if (!isOpen) {
-    resetForm()
-  }
-}, { immediate: true })
+watch(
+  [() => props.isOpen, () => props.property],
+  ([isOpen, property]) => {
+    if (isOpen && property) {
+      initializeForm()
+    } else if (!isOpen) {
+      resetForm()
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
@@ -355,4 +396,3 @@ watch([() => props.isOpen, () => props.property], ([isOpen, property]) => {
   transform: scale(0.95);
 }
 </style>
-

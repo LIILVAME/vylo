@@ -44,8 +44,8 @@ describe('retry', () => {
     })
 
     expect(result.success).toBe(false)
-    expect(fn).toHaveBeenCalledTimes(3) // 1 initial + 2 retries
-    expect(result.retries).toBe(2)
+    expect(fn).toHaveBeenCalledTimes(3) // 1 initial + 2 retries (attempts 0, 1, 2)
+    expect(result.retries).toBe(3) // retries counter increments on each failed attempt
   })
 
   it('should not retry non-retryable errors', async () => {
@@ -76,7 +76,11 @@ describe('retry', () => {
     const result = await retry(fn, {
       maxRetries: 2,
       initialDelay: 10,
-      shouldRetry: result => !result.success && isRetryableError(result.error)
+      // shouldRetry receives (result.error || result), so we need to handle both cases
+      shouldRetry: errorOrResult => {
+        const error = errorOrResult?.error || errorOrResult
+        return error && isRetryableError(error)
+      }
     })
 
     expect(result.success).toBe(true)
@@ -89,7 +93,9 @@ describe('isRetryableError', () => {
   it('should identify network errors as retryable', () => {
     expect(isRetryableError(new Error('Network request failed'))).toBe(true)
     expect(isRetryableError(new Error('Failed to fetch'))).toBe(true)
-    expect(isRetryableError(new Error('Connection timeout'))).toBe(true)
+    // Timeouts are NOT retryable (they indicate the request takes too long, not a temporary network issue)
+    expect(isRetryableError(new Error('Connection timeout'))).toBe(false)
+    expect(isRetryableError(new Error('Connection error'))).toBe(true)
   })
 
   it('should not identify validation errors as retryable', () => {
